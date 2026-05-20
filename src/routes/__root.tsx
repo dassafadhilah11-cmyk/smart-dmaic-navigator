@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "KAI ANALYTICS" },
+      { name: "description", content: "Smart DMAIC Guide generates a tailored Lean Six Sigma roadmap for business problems." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "KAI ANALYTICS" },
+      { property: "og:description", content: "Smart DMAIC Guide generates a tailored Lean Six Sigma roadmap for business problems." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "KAI ANALYTICS" },
+      { name: "twitter:description", content: "Smart DMAIC Guide generates a tailored Lean Six Sigma roadmap for business problems." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/4J8aes2xuIgA9dIh3k8nrG53WMY2/social-images/social-1779279684537-WhatsApp_Image_2026-05-20_at_19.20.42.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/4J8aes2xuIgA9dIh3k8nrG53WMY2/social-images/social-1779279684537-WhatsApp_Image_2026-05-20_at_19.20.42.webp" },
     ],
     links: [
       {
