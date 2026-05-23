@@ -288,29 +288,7 @@ export function DmaicCompanion() {
               </TabsList>
 
               <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>📋 Project Charter</CardTitle>
-                    <CardDescription>Mendefinisikan masalah, tujuan, dan ruang lingkup proyek.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    <Section title="Problem Statement">
-                      <p className="text-foreground/90 leading-relaxed">{roadmap.problem}</p>
-                    </Section>
-                    <Section title="Goal Statement">
-                      <p className="text-foreground/90 leading-relaxed">{goalStatement}</p>
-                    </Section>
-                    <Section title="Project Timeline">
-                      <ul className="space-y-2 text-sm">
-                        <li>📌 Minggu 1–2: Define & charter sign-off</li>
-                        <li>📊 Minggu 3–5: Measure & baseline data</li>
-                        <li>🔍 Minggu 6–7: Analyze root cause</li>
-                        <li>💡 Minggu 8–10: Improve & pilot</li>
-                        <li>🛡️ Minggu 11–12: Control & handover</li>
-                      </ul>
-                    </Section>
-                  </CardContent>
-                </Card>
+                <VisualProjectCharter roadmap={roadmap} initialGoal={goalStatement} />
               </TabsContent>
 
               <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
