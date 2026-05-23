@@ -1,10 +1,25 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Printer, Sparkles, Target, BarChart3, Search, Lightbulb, ShieldCheck } from "lucide-react";
+import {
+  Printer,
+  Sparkles,
+  Target,
+  BarChart3,
+  Search,
+  Lightbulb,
+  ShieldCheck,
+  AlertOctagon,
+  Crosshair,
+  ListChecks,
+  CalendarClock,
+  CheckCircle2,
+  XCircle,
+  Pencil,
+} from "lucide-react";
 
 type Roadmap = {
   problem: string;
@@ -17,6 +32,8 @@ type Roadmap = {
   actions: { failure: string; solution: string; method: string }[];
   controls: string[];
   pokaYoke: string[];
+  inScope: string[];
+  outScope: string[];
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
@@ -47,6 +64,16 @@ function buildRoadmap(problem: string): Roadmap {
         "Sensor suhu dengan auto-shutoff bila keluar batas kontrol",
         "Timer otomatis untuk durasi penggorengan",
       ],
+      inScope: [
+        "Proses produksi internal pabrik (penggorengan, pengemasan)",
+        "Kualitas bahan baku dari supplier utama",
+        "Pelatihan operator shift pagi & malam",
+      ],
+      outScope: [
+        "Distribusi & logistik ke retailer",
+        "Aktivitas pemasaran & branding produk",
+        "Pengembangan varian rasa baru",
+      ],
     },
     delay: {
       ctqs: [
@@ -63,6 +90,16 @@ function buildRoadmap(problem: string): Roadmap {
       pokaYoke: [
         "Andon system untuk eskalasi keterlambatan otomatis",
         "Kanban visual untuk mencegah penumpukan WIP",
+      ],
+      inScope: [
+        "Alur proses internal end-to-end",
+        "Layout & line balancing stasiun kerja",
+        "Koordinasi antar shift operasional",
+      ],
+      outScope: [
+        "Lead time pengiriman vendor eksternal",
+        "Perubahan ERP / sistem inti",
+        "Hiring tambahan headcount",
       ],
     },
     service: {
@@ -81,6 +118,16 @@ function buildRoadmap(problem: string): Roadmap {
         "Auto-acknowledgement saat tiket masuk",
         "Mandatory field validation pada form keluhan",
       ],
+      inScope: [
+        "Channel keluhan utama (email, chat, telepon)",
+        "SLA & ticket routing internal",
+        "Knowledge base agen customer service",
+      ],
+      outScope: [
+        "Kebijakan refund & komersial",
+        "Pengembangan produk baru",
+        "Strategi marketing & promosi",
+      ],
     },
     defect: {
       ctqs: [
@@ -98,6 +145,16 @@ function buildRoadmap(problem: string): Roadmap {
         "Jig/fixture mencegah pemasangan terbalik",
         "Checklist digital wajib sebelum proses berikutnya",
       ],
+      inScope: [
+        "Proses produksi line yang terdampak",
+        "Inspeksi kualitas in-process & final",
+        "SOP & sertifikasi operator",
+      ],
+      outScope: [
+        "Desain produk & engineering change",
+        "Kontrak supplier strategis",
+        "Investasi capex mesin baru",
+      ],
     },
     generic: {
       ctqs: [
@@ -114,6 +171,16 @@ function buildRoadmap(problem: string): Roadmap {
       pokaYoke: [
         "Checklist standar di titik kritis proses",
         "Visual indicator status (hijau/kuning/merah)",
+      ],
+      inScope: [
+        "Proses utama yang terdampak masalah",
+        "Tim operasional yang menjalankan proses",
+        "Data & metrik internal yang tersedia",
+      ],
+      outScope: [
+        "Perubahan strategi bisnis level korporat",
+        "Investasi sistem / infrastruktur baru",
+        "Faktor eksternal di luar kendali tim",
       ],
     },
   };
@@ -143,6 +210,8 @@ function buildRoadmap(problem: string): Roadmap {
       "Dashboard KPI digital yang transparan untuk seluruh tim.",
     ],
     pokaYoke: b.pokaYoke!,
+    inScope: b.inScope!,
+    outScope: b.outScope!,
   };
 }
 
