@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateRoadmap } from "@/lib/dmaic.functions";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -218,12 +221,35 @@ function buildRoadmap(problem: string): Roadmap {
 export function DmaicCompanion() {
   const [input, setInput] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [loading, setLoading] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const callGenerate = useServerFn(generateRoadmap);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!input.trim()) return;
-    setRoadmap(buildRoadmap(input));
-    setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    setLoading(true);
+    try {
+      const result = await callGenerate({ data: { problem: input.trim() } });
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      // Merge AI output with static method/tool catalogs the UI still needs.
+      const fallback = buildRoadmap(input);
+      const ai = result.roadmap as Partial<Roadmap>;
+      setRoadmap({
+        ...fallback,
+        ...ai,
+        qualitative: fallback.qualitative,
+        quantitative: fallback.quantitative,
+        controls: fallback.controls,
+      } as Roadmap);
+      setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal menghasilkan roadmap.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const goalStatement = useMemo(() => {
@@ -266,12 +292,12 @@ export function DmaicCompanion() {
             />
             <Button
               onClick={handleGenerate}
-              disabled={!input.trim()}
+              disabled={!input.trim() || loading}
               size="lg"
               className="w-full sm:w-auto"
             >
               <Sparkles className="mr-2 size-4" />
-              Generate DMAIC Roadmap
+              {loading ? "Menganalisis…" : "Generate DMAIC Roadmap"}
             </Button>
           </CardContent>
         </Card>
