@@ -542,11 +542,18 @@ function VisualProjectCharter({
 
   const timeline = useMemo(
     () => [
-      { label: "Define & charter sign-off", weeks: "Minggu 1–2", phase: "Define" },
-      { label: "Measure & baseline data", weeks: "Minggu 3–5", phase: "Measure" },
-      { label: "Analyze root cause", weeks: "Minggu 6–7", phase: "Analyze" },
-      { label: "Improve & pilot solusi", weeks: "Minggu 8–10", phase: "Improve" },
-      { label: "Control & handover", weeks: "Minggu 11–12", phase: "Control" },
+      { weeks: "Minggu 1", phase: "Define", label: "Kick-off & penyusunan project charter" },
+      { weeks: "Minggu 2", phase: "Define", label: "Identifikasi stakeholder & sign-off charter" },
+      { weeks: "Minggu 3", phase: "Measure", label: "Pemetaan proses (SIPOC) & rencana pengumpulan data" },
+      { weeks: "Minggu 4", phase: "Measure", label: "Pengumpulan baseline data CTQ" },
+      { weeks: "Minggu 5", phase: "Measure", label: "Validasi sistem pengukuran (MSA)" },
+      { weeks: "Minggu 6", phase: "Analyze", label: "Analisis root cause (Fishbone & 5 Why)" },
+      { weeks: "Minggu 7", phase: "Analyze", label: "Verifikasi akar masalah dengan data" },
+      { weeks: "Minggu 8", phase: "Improve", label: "Brainstorming & pemilihan solusi (FMEA)" },
+      { weeks: "Minggu 9", phase: "Improve", label: "Implementasi pilot solusi di lapangan" },
+      { weeks: "Minggu 10", phase: "Improve", label: "Evaluasi hasil pilot & penyempurnaan" },
+      { weeks: "Minggu 11", phase: "Control", label: "Standardisasi: update SOP & control plan" },
+      { weeks: "Minggu 12", phase: "Control", label: "Handover ke process owner & sign-off project" },
     ],
     [],
   );
