@@ -1,6 +1,21 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Urbanist:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --font-display: "Urbanist", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Poppins", "Urbanist", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
 
 @custom-variant dark (&:is(.dark *));
 
