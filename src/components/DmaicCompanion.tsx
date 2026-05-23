@@ -1,10 +1,25 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Printer, Sparkles, Target, BarChart3, Search, Lightbulb, ShieldCheck } from "lucide-react";
+import {
+  Printer,
+  Sparkles,
+  Target,
+  BarChart3,
+  Search,
+  Lightbulb,
+  ShieldCheck,
+  AlertOctagon,
+  Crosshair,
+  ListChecks,
+  CalendarClock,
+  CheckCircle2,
+  XCircle,
+  Pencil,
+} from "lucide-react";
 
 type Roadmap = {
   problem: string;
@@ -17,6 +32,8 @@ type Roadmap = {
   actions: { failure: string; solution: string; method: string }[];
   controls: string[];
   pokaYoke: string[];
+  inScope: string[];
+  outScope: string[];
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
@@ -47,6 +64,16 @@ function buildRoadmap(problem: string): Roadmap {
         "Sensor suhu dengan auto-shutoff bila keluar batas kontrol",
         "Timer otomatis untuk durasi penggorengan",
       ],
+      inScope: [
+        "Proses produksi internal pabrik (penggorengan, pengemasan)",
+        "Kualitas bahan baku dari supplier utama",
+        "Pelatihan operator shift pagi & malam",
+      ],
+      outScope: [
+        "Distribusi & logistik ke retailer",
+        "Aktivitas pemasaran & branding produk",
+        "Pengembangan varian rasa baru",
+      ],
     },
     delay: {
       ctqs: [
@@ -63,6 +90,16 @@ function buildRoadmap(problem: string): Roadmap {
       pokaYoke: [
         "Andon system untuk eskalasi keterlambatan otomatis",
         "Kanban visual untuk mencegah penumpukan WIP",
+      ],
+      inScope: [
+        "Alur proses internal end-to-end",
+        "Layout & line balancing stasiun kerja",
+        "Koordinasi antar shift operasional",
+      ],
+      outScope: [
+        "Lead time pengiriman vendor eksternal",
+        "Perubahan ERP / sistem inti",
+        "Hiring tambahan headcount",
       ],
     },
     service: {
@@ -81,6 +118,16 @@ function buildRoadmap(problem: string): Roadmap {
         "Auto-acknowledgement saat tiket masuk",
         "Mandatory field validation pada form keluhan",
       ],
+      inScope: [
+        "Channel keluhan utama (email, chat, telepon)",
+        "SLA & ticket routing internal",
+        "Knowledge base agen customer service",
+      ],
+      outScope: [
+        "Kebijakan refund & komersial",
+        "Pengembangan produk baru",
+        "Strategi marketing & promosi",
+      ],
     },
     defect: {
       ctqs: [
@@ -98,6 +145,16 @@ function buildRoadmap(problem: string): Roadmap {
         "Jig/fixture mencegah pemasangan terbalik",
         "Checklist digital wajib sebelum proses berikutnya",
       ],
+      inScope: [
+        "Proses produksi line yang terdampak",
+        "Inspeksi kualitas in-process & final",
+        "SOP & sertifikasi operator",
+      ],
+      outScope: [
+        "Desain produk & engineering change",
+        "Kontrak supplier strategis",
+        "Investasi capex mesin baru",
+      ],
     },
     generic: {
       ctqs: [
@@ -114,6 +171,16 @@ function buildRoadmap(problem: string): Roadmap {
       pokaYoke: [
         "Checklist standar di titik kritis proses",
         "Visual indicator status (hijau/kuning/merah)",
+      ],
+      inScope: [
+        "Proses utama yang terdampak masalah",
+        "Tim operasional yang menjalankan proses",
+        "Data & metrik internal yang tersedia",
+      ],
+      outScope: [
+        "Perubahan strategi bisnis level korporat",
+        "Investasi sistem / infrastruktur baru",
+        "Faktor eksternal di luar kendali tim",
       ],
     },
   };
@@ -143,6 +210,8 @@ function buildRoadmap(problem: string): Roadmap {
       "Dashboard KPI digital yang transparan untuk seluruh tim.",
     ],
     pokaYoke: b.pokaYoke!,
+    inScope: b.inScope!,
+    outScope: b.outScope!,
   };
 }
 
@@ -219,29 +288,7 @@ export function DmaicCompanion() {
               </TabsList>
 
               <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>📋 Project Charter</CardTitle>
-                    <CardDescription>Mendefinisikan masalah, tujuan, dan ruang lingkup proyek.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    <Section title="Problem Statement">
-                      <p className="text-foreground/90 leading-relaxed">{roadmap.problem}</p>
-                    </Section>
-                    <Section title="Goal Statement">
-                      <p className="text-foreground/90 leading-relaxed">{goalStatement}</p>
-                    </Section>
-                    <Section title="Project Timeline">
-                      <ul className="space-y-2 text-sm">
-                        <li>📌 Minggu 1–2: Define & charter sign-off</li>
-                        <li>📊 Minggu 3–5: Measure & baseline data</li>
-                        <li>🔍 Minggu 6–7: Analyze root cause</li>
-                        <li>💡 Minggu 8–10: Improve & pilot</li>
-                        <li>🛡️ Minggu 11–12: Control & handover</li>
-                      </ul>
-                    </Section>
-                  </CardContent>
-                </Card>
+                <VisualProjectCharter roadmap={roadmap} initialGoal={goalStatement} />
               </TabsContent>
 
               <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
@@ -381,6 +428,274 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div>
       <h3 className="text-sm font-semibold uppercase tracking-wide text-primary mb-2">{title}</h3>
       {children}
+    </div>
+  );
+}
+
+/* ---------- Visual Project Charter Dashboard ---------- */
+
+type Accent = "danger" | "success" | "info" | "primary";
+
+const accentMap: Record<Accent, { border: string; chip: string; ring: string }> = {
+  danger: {
+    border: "border-l-rose-500",
+    chip: "bg-rose-50 text-rose-600 ring-rose-200",
+    ring: "ring-rose-100",
+  },
+  success: {
+    border: "border-l-emerald-500",
+    chip: "bg-emerald-50 text-emerald-600 ring-emerald-200",
+    ring: "ring-emerald-100",
+  },
+  info: {
+    border: "border-l-sky-500",
+    chip: "bg-sky-50 text-sky-600 ring-sky-200",
+    ring: "ring-sky-100",
+  },
+  primary: {
+    border: "border-l-indigo-500",
+    chip: "bg-indigo-50 text-indigo-600 ring-indigo-200",
+    ring: "ring-indigo-100",
+  },
+};
+
+function CharterCard({
+  accent,
+  icon,
+  eyebrow,
+  title,
+  children,
+}: {
+  accent: Accent;
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const a = accentMap[accent];
+  return (
+    <div
+      className={`group relative bg-white rounded-2xl border border-slate-200/80 ${a.border} border-l-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] hover:shadow-[0_2px_4px_rgba(15,23,42,0.05),0_16px_40px_-16px_rgba(15,23,42,0.18)] transition-shadow p-6`}
+    >
+      <div className="flex items-start gap-4">
+        <div className={`shrink-0 rounded-xl p-2.5 ring-1 ${a.chip}`}>{icon}</div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{eyebrow}</p>
+          <h3 className="font-display text-lg font-700 font-bold text-slate-800 mt-0.5">{title}</h3>
+          <div className="mt-3 text-slate-700">{children}</div>
+        </div>
+        <Pencil className="size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </div>
+  );
+}
+
+function Editable({
+  value,
+  onChange,
+  multiline = false,
+  className = "",
+  placeholder = "Klik untuk edit…",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  multiline?: boolean;
+  className?: string;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current && ref.current.innerText !== value) {
+      ref.current.innerText = value;
+    }
+  }, [value]);
+  return (
+    <div
+      ref={ref}
+      role="textbox"
+      contentEditable
+      suppressContentEditableWarning
+      data-placeholder={placeholder}
+      onBlur={(e) => onChange((e.target as HTMLDivElement).innerText.trim())}
+      onKeyDown={(e) => {
+        if (!multiline && e.key === "Enter") {
+          e.preventDefault();
+          (e.target as HTMLDivElement).blur();
+        }
+      }}
+      className={`outline-none rounded-md px-1.5 -mx-1.5 py-0.5 focus:bg-sky-50/70 focus:ring-2 focus:ring-sky-200 hover:bg-slate-50 transition-colors empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 ${className}`}
+    />
+  );
+}
+
+function VisualProjectCharter({
+  roadmap,
+  initialGoal,
+}: {
+  roadmap: Roadmap;
+  initialGoal: string;
+}) {
+  const [problem, setProblem] = useState(roadmap.problem);
+  const [goal, setGoal] = useState(initialGoal);
+  const [inScope, setInScope] = useState<string[]>(roadmap.inScope);
+  const [outScope, setOutScope] = useState<string[]>(roadmap.outScope);
+
+  const timeline = useMemo(
+    () => [
+      { label: "Define & charter sign-off", weeks: "Minggu 1–2", phase: "Define" },
+      { label: "Measure & baseline data", weeks: "Minggu 3–5", phase: "Measure" },
+      { label: "Analyze root cause", weeks: "Minggu 6–7", phase: "Analyze" },
+      { label: "Improve & pilot solusi", weeks: "Minggu 8–10", phase: "Improve" },
+      { label: "Control & handover", weeks: "Minggu 11–12", phase: "Control" },
+    ],
+    [],
+  );
+  const [steps, setSteps] = useState(timeline);
+
+  const updateList = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    i: number,
+    v: string,
+  ) =>
+    setter((prev) => {
+      const next = [...prev];
+      next[i] = v;
+      return next;
+    });
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+            Define · Project Charter
+          </p>
+          <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-800">
+            Visual Project Charter Dashboard
+          </h2>
+        </div>
+        <Badge variant="secondary" className="hidden sm:inline-flex gap-1.5 bg-sky-50 text-sky-700 ring-1 ring-sky-200">
+          <Sparkles className="size-3" /> AI-generated · Editable
+        </Badge>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <CharterCard
+          accent="danger"
+          icon={<AlertOctagon className="size-5" />}
+          eyebrow="Problem Statement"
+          title="Masalah yang Diidentifikasi"
+        >
+          <Editable
+            value={problem}
+            onChange={setProblem}
+            multiline
+            className="leading-relaxed text-[15px]"
+          />
+        </CharterCard>
+
+        <CharterCard
+          accent="success"
+          icon={<Crosshair className="size-5" />}
+          eyebrow="SMART Goal"
+          title="Target Perbaikan Terukur"
+        >
+          <Editable
+            value={goal}
+            onChange={setGoal}
+            multiline
+            className="leading-relaxed text-[15px]"
+          />
+          <div className="mt-4 flex items-center gap-3">
+            <div className="flex-1 h-2 rounded-full bg-emerald-100 overflow-hidden">
+              <div className="h-full w-1/2 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+            </div>
+            <span className="text-sm font-semibold text-emerald-600">{roadmap.goalPct}%</span>
+          </div>
+        </CharterCard>
+
+        <CharterCard
+          accent="info"
+          icon={<ListChecks className="size-5" />}
+          eyebrow="Project Scope"
+          title="Batasan Ruang Lingkup"
+        >
+          <div className="grid sm:grid-cols-2 gap-5 mt-1">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-2">
+                In-Scope
+              </p>
+              <ul className="space-y-2">
+                {inScope.map((s, i) => (
+                  <li key={i} className="flex gap-2 text-sm">
+                    <CheckCircle2 className="size-4 mt-0.5 shrink-0 text-emerald-500" />
+                    <Editable
+                      value={s}
+                      onChange={(v) => updateList(setInScope, i, v)}
+                      className="flex-1"
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2">
+                Out-of-Scope
+              </p>
+              <ul className="space-y-2">
+                {outScope.map((s, i) => (
+                  <li key={i} className="flex gap-2 text-sm">
+                    <XCircle className="size-4 mt-0.5 shrink-0 text-rose-500" />
+                    <Editable
+                      value={s}
+                      onChange={(v) => updateList(setOutScope, i, v)}
+                      className="flex-1"
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </CharterCard>
+
+        <CharterCard
+          accent="primary"
+          icon={<CalendarClock className="size-5" />}
+          eyebrow="Project Timeline"
+          title="Roadmap 12 Minggu"
+        >
+          <ol className="relative mt-1">
+            <span className="absolute left-[11px] top-1 bottom-1 w-px bg-gradient-to-b from-indigo-200 via-sky-200 to-emerald-200" />
+            {steps.map((step, i) => (
+              <li key={i} className="relative pl-9 pb-4 last:pb-0">
+                <span className="absolute left-0 top-0.5 flex items-center justify-center size-6 rounded-full bg-white ring-2 ring-indigo-300 text-[11px] font-bold text-indigo-600 shadow-sm">
+                  {i + 1}
+                </span>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-indigo-500">
+                    {step.phase}
+                  </span>
+                  <span className="text-xs text-slate-400">·</span>
+                  <Editable
+                    value={step.weeks}
+                    onChange={(v) =>
+                      setSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, weeks: v } : s)))
+                    }
+                    className="text-xs text-slate-500"
+                  />
+                </div>
+                <Editable
+                  value={step.label}
+                  onChange={(v) =>
+                    setSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, label: v } : s)))
+                  }
+                  className="text-sm font-medium text-slate-700 mt-0.5"
+                />
+              </li>
+            ))}
+          </ol>
+        </CharterCard>
+      </div>
     </div>
   );
 }
