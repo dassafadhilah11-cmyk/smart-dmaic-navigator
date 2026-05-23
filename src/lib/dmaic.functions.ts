@@ -106,7 +106,7 @@ export const generateRoadmap = createServerFn({ method: "POST" })
       if (!res.ok) {
         const txt = await res.text();
         console.error("AI gateway error:", res.status, txt);
-        return { ok: false as const, error: `AI gateway error (${res.status}).` };
+        return { ok: false as const, error: `AI gateway error (${res.status}): ${txt.slice(0, 300)}` };
       }
 
       const json = await res.json();
