@@ -87,7 +87,7 @@ export const generateRoadmap = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-2.5-flash",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: `Masalah dari user:\n\n"${data.problem}"\n\nBuat roadmap DMAIC. Ingat: variasikan goalPct (30–70 berdasarkan severity), klasifikasikan industri dengan tepat, dan buat scope yang sangat berbeda per industri. Tantang user dengan insight tajam.` },
