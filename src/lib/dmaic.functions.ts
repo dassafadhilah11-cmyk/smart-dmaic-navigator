@@ -46,7 +46,7 @@ const roadmapTool = {
         problem: { type: "string", description: "Sharpened, consultant-style restatement of the user's problem in Bahasa Indonesia (1-3 sentences, include one challenging insight)." },
         domain: { type: "string", enum: ["food", "defect", "delay", "service", "generic"] },
         goalPct: { type: "integer", minimum: 30, maximum: 70, description: "Realistic reduction target % varied by severity. AVOID always 50." },
-        timelineWeeks: { type: "integer", enum: [12] },
+        timelineWeeks: { type: "integer", description: "Always 12." },
         ctqs: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 Critical-to-Quality probing questions, industry-specific, in Bahasa Indonesia." },
         actions: {
           type: "array", minItems: 3, maxItems: 4,
@@ -66,7 +66,6 @@ const roadmapTool = {
         outScope: { type: "array", minItems: 3, maxItems: 4, items: { type: "string" }, description: "Industry-specific out-of-scope items, drastically different per industry." },
       },
       required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "actions", "pokaYoke", "inScope", "outScope"],
-      additionalProperties: false,
     },
   },
 };
