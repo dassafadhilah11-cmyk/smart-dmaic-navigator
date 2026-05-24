@@ -22,6 +22,12 @@ import {
   CheckCircle2,
   XCircle,
   Pencil,
+  Truck,
+  Package,
+  Cog,
+  Boxes,
+  Users,
+  ArrowRight,
 } from "lucide-react";
 
 type Roadmap = {
@@ -37,6 +43,13 @@ type Roadmap = {
   pokaYoke: string[];
   inScope: string[];
   outScope: string[];
+  sipoc: {
+    suppliers: string[];
+    inputs: string[];
+    process: string[];
+    outputs: string[];
+    customers: string[];
+  };
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
@@ -77,6 +90,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Aktivitas pemasaran & branding produk",
         "Pengembangan varian rasa baru",
       ],
+      sipoc: {
+        suppliers: ["Supplier bahan baku singkong", "Supplier minyak goreng", "Supplier kemasan", "Tim Maintenance Mesin"],
+        inputs: ["Singkong segar grade A", "Minyak goreng siap pakai", "Kemasan plastik & label", "Mesin penggorengan terkalibrasi"],
+        process: ["Sortir & pencucian bahan", "Penggorengan suhu terkontrol", "Penirisan & bumbu", "Pengemasan & sealing"],
+        outputs: ["Singkong bersih siap goreng", "Keripik matang seragam", "Keripik berbumbu siap kemas", "Produk jadi terkemas"],
+        customers: ["Stasiun penggorengan", "Stasiun bumbu", "Stasiun pengemasan", "Gudang barang jadi / distribusi"],
+      },
     },
     delay: {
       ctqs: [
@@ -104,6 +124,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Perubahan ERP / sistem inti",
         "Hiring tambahan headcount",
       ],
+      sipoc: {
+        suppliers: ["Departemen sebelumnya", "Planning & Scheduling", "Tim Supervisor Shift", "Tim IT / Sistem Internal"],
+        inputs: ["Work-in-progress masuk", "Jadwal & prioritas order", "Instruksi kerja harian", "Status sistem real-time"],
+        process: ["Penerimaan & antrian order", "Eksekusi pekerjaan utama", "Quality check antar stasiun", "Handover ke proses berikutnya"],
+        outputs: ["Order terdaftar & terprioritas", "Pekerjaan selesai sesuai takt", "Output lolos QC", "Order siap diteruskan"],
+        customers: ["Stasiun kerja berikutnya", "Supervisor produksi", "Tim QA internal", "Pelanggan akhir / next dept"],
+      },
     },
     service: {
       ctqs: [
@@ -131,6 +158,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Pengembangan produk baru",
         "Strategi marketing & promosi",
       ],
+      sipoc: {
+        suppliers: ["Pelanggan", "Tim Knowledge Management", "Sistem CRM / Ticketing", "Tim Supervisor CS"],
+        inputs: ["Keluhan & pertanyaan pelanggan", "Knowledge base & skrip", "Tiket terklasifikasi & SLA", "Eskalasi & arahan"],
+        process: ["Penerimaan keluhan multi-channel", "Klasifikasi & routing tiket", "Penanganan oleh agen CS", "Closure & follow-up"],
+        outputs: ["Tiket tercatat lengkap", "Tiket terarah ke agen tepat", "Solusi diberikan ke pelanggan", "Tiket closed & CSAT terkumpul"],
+        customers: ["Tim CS Tier-1", "Agen sesuai skill", "Pelanggan", "Manajemen & tim improvement"],
+      },
     },
     defect: {
       ctqs: [
@@ -158,6 +192,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Kontrak supplier strategis",
         "Investasi capex mesin baru",
       ],
+      sipoc: {
+        suppliers: ["Supplier bahan baku", "Tim Engineering / SOP", "Tim Maintenance", "Operator shift sebelumnya"],
+        inputs: ["Raw material sesuai spesifikasi", "SOP & parameter proses", "Mesin terkalibrasi & siap pakai", "Setup & handover shift"],
+        process: ["Persiapan & setup line", "Produksi sesuai parameter", "Inspeksi in-process", "Final QC & rilis batch"],
+        outputs: ["Line siap produksi", "Produk sesuai spesifikasi", "Defect terdeteksi dini", "Batch lolos QC"],
+        customers: ["Operator produksi", "Stasiun proses berikutnya", "Tim rework / scrap", "Gudang barang jadi"],
+      },
     },
     generic: {
       ctqs: [
@@ -185,6 +226,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Investasi sistem / infrastruktur baru",
         "Faktor eksternal di luar kendali tim",
       ],
+      sipoc: {
+        suppliers: ["Pengguna / requester", "Tim Product", "Sistem upstream", "Tim On-call"],
+        inputs: ["Request / event masuk", "Spesifikasi & acceptance criteria", "Data & API dependency", "Monitoring & alert"],
+        process: ["Intake & triage request", "Eksekusi / development", "Verifikasi & testing", "Deploy & monitoring"],
+        outputs: ["Request terklasifikasi", "Solusi / fitur siap uji", "Release lolos verifikasi", "Perubahan live & terpantau"],
+        customers: ["Tim delivery", "Tim QA", "Tim Release / Ops", "Pengguna akhir"],
+      },
     },
   };
 
@@ -215,6 +263,7 @@ function buildRoadmap(problem: string): Roadmap {
     pokaYoke: b.pokaYoke!,
     inScope: b.inScope!,
     outScope: b.outScope!,
+    sipoc: b.sipoc!,
   };
 }
 
@@ -315,6 +364,9 @@ export function DmaicCompanion() {
 
               <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
                 <VisualProjectCharter roadmap={roadmap} initialGoal={goalStatement} />
+                <div className="mt-6">
+                  <SipocDiagram sipoc={roadmap.sipoc} domain={roadmap.domain} />
+                </div>
               </TabsContent>
 
               <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
@@ -454,6 +506,122 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div>
       <h3 className="text-sm font-semibold uppercase tracking-wide text-primary mb-2">{title}</h3>
       {children}
+    </div>
+  );
+}
+
+/* ---------- SIPOC Diagram ---------- */
+
+const domainLabel: Record<Roadmap["domain"], string> = {
+  food: "Manufacturing · F&B",
+  defect: "Manufacturing",
+  delay: "Service Operations",
+  service: "Customer Service",
+  generic: "Digital / SaaS",
+};
+
+const sipocCols = [
+  { key: "suppliers", label: "Suppliers", icon: Truck, tone: "bg-rose-50 text-rose-600 ring-rose-200" },
+  { key: "inputs", label: "Inputs", icon: Package, tone: "bg-amber-50 text-amber-600 ring-amber-200" },
+  { key: "process", label: "Process", icon: Cog, tone: "bg-indigo-50 text-indigo-600 ring-indigo-200" },
+  { key: "outputs", label: "Outputs", icon: Boxes, tone: "bg-sky-50 text-sky-600 ring-sky-200" },
+  { key: "customers", label: "Customers", icon: Users, tone: "bg-emerald-50 text-emerald-600 ring-emerald-200" },
+] as const;
+
+function SipocDiagram({
+  sipoc,
+  domain,
+}: {
+  sipoc: Roadmap["sipoc"];
+  domain: Roadmap["domain"];
+}) {
+  const rows = 4;
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+            Define · Process Map
+          </p>
+          <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-800">
+            SIPOC Diagram
+          </h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Setiap baris terhubung: Supplier → Input → Process → Output → Customer.
+          </p>
+        </div>
+        <Badge variant="secondary" className="bg-sky-50 text-sky-700 ring-1 ring-sky-200">
+          Industri: {domainLabel[domain]}
+        </Badge>
+      </div>
+
+      <div className="hidden lg:grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-y-3">
+        {sipocCols.map((c, ci) => (
+          <div key={c.key} className="contents">
+            <div className="col-span-1 row-start-1 flex items-center gap-2 px-3 pb-2 border-b border-slate-200">
+              <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
+                <c.icon className="size-4" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                {c.label}
+              </span>
+            </div>
+            {ci < sipocCols.length - 1 && (
+              <div className="row-start-1 flex items-center justify-center text-slate-300 px-1">
+                <ArrowRight className="size-4" />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {Array.from({ length: rows }).map((_, ri) =>
+          sipocCols.map((c, ci) => (
+            <div key={`${c.key}-${ri}`} className="contents">
+              <div
+                className="col-span-1 m-1 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 leading-snug"
+                style={{ gridRow: ri + 2, gridColumn: ci * 2 + 1 }}
+              >
+                {sipoc[c.key]?.[ri] ?? "—"}
+              </div>
+              {ci < sipocCols.length - 1 && (
+                <div
+                  className="flex items-center justify-center text-slate-300"
+                  style={{ gridRow: ri + 2, gridColumn: ci * 2 + 2 }}
+                >
+                  <ArrowRight className="size-3.5" />
+                </div>
+              )}
+            </div>
+          )),
+        )}
+      </div>
+
+      {/* Mobile / tablet stacked view */}
+      <div className="lg:hidden space-y-4">
+        {sipocCols.map((c) => (
+          <div key={c.key}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
+                <c.icon className="size-4" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                {c.label}
+              </span>
+            </div>
+            <ol className="space-y-1.5">
+              {sipoc[c.key]?.map((v, i) => (
+                <li
+                  key={i}
+                  className="flex gap-2 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-700"
+                >
+                  <span className="text-slate-400 font-semibold">{i + 1}.</span>
+                  <span>{v}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -33,6 +33,15 @@ SCOPE MUST BE INDUSTRY-SPECIFIC AND DRASTICALLY DIFFERENT:
 - Digital (generic): scope around UX flow, API latency, conversion funnel, on-call rotation, feature flags, deploy pipeline; out-of-scope is hardware procurement, office layout, physical inventory.
 NEVER reuse generic scope items across industries.
 
+SIPOC — STRICT LOGICAL CONTINUITY (CRITICAL):
+You MUST emit a SIPOC where every column is causally chained, not a random list:
+  1. First decide "process": 4 ordered, end-to-end steps of the ACTUAL workflow the problem lives in (industry-specific verbs).
+  2. "inputs" (exactly 4): each input must be a concrete material/data/resource that is CONSUMED by one of the process steps. Order inputs so input[i] feeds into process[i] when possible.
+  3. "suppliers" (exactly 4): each supplier MUST be the party that delivers the corresponding inputs[i]. supplier[i] → inputs[i]. Never list a supplier whose input is not in the inputs column.
+  4. "outputs" (exactly 4): each output must be a concrete deliverable PRODUCED by one of the process steps. Order outputs so process[i] produces outputs[i] when possible.
+  5. "customers" (exactly 4): each customer MUST be the party that RECEIVES the corresponding outputs[i]. customers[i] ← outputs[i]. Never list a customer who does not receive a listed output.
+All five columns must stay strictly inside the detected industry (manufacturing vs service vs digital — never mix).
+
 OUTPUT: Call the tool "emit_roadmap" exactly once with a fully populated payload. Every list must have the required number of items. Be specific, not generic.`;
 
 const roadmapTool = {
@@ -64,8 +73,21 @@ const roadmapTool = {
         pokaYoke: { type: "array", minItems: 2, maxItems: 3, items: { type: "string" }, description: "Industry-specific mistake-proofing mechanisms." },
         inScope: { type: "array", minItems: 3, maxItems: 4, items: { type: "string" }, description: "Industry-specific in-scope items. Manufacturing ≠ Service ≠ Digital." },
         outScope: { type: "array", minItems: 3, maxItems: 4, items: { type: "string" }, description: "Industry-specific out-of-scope items, drastically different per industry." },
+        sipoc: {
+          type: "object",
+          description: "SIPOC with strict row-aligned continuity. suppliers[i] delivers inputs[i] into process[i] which produces outputs[i] consumed by customers[i].",
+          properties: {
+            suppliers: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+            inputs:    { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+            process:   { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 ordered process steps." },
+            outputs:   { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+            customers: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" } },
+          },
+          required: ["suppliers", "inputs", "process", "outputs", "customers"],
+          additionalProperties: false,
+        },
       },
-      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "actions", "pokaYoke", "inScope", "outScope"],
+      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
     },
   },
 };
