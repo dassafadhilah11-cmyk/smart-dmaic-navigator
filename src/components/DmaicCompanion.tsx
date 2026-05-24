@@ -364,6 +364,9 @@ export function DmaicCompanion() {
 
               <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
                 <VisualProjectCharter roadmap={roadmap} initialGoal={goalStatement} />
+                <div className="mt-6">
+                  <SipocDiagram sipoc={roadmap.sipoc} domain={roadmap.domain} />
+                </div>
               </TabsContent>
 
               <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
