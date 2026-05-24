@@ -303,7 +303,15 @@ export function DmaicCompanion() {
 
   const goalStatement = useMemo(() => {
     if (!roadmap) return "";
-    return `Menurunkan tingkat masalah sebesar ${roadmap.goalPct}% dalam waktu ${roadmap.timelineWeeks / 4} bulan ke depan, terukur melalui metrik CTQ yang ditetapkan.`;
+    const months = roadmap.timelineWeeks / 4;
+    // Detect explicit current rate (e.g. "15%", "15 persen", "15 %") in the original problem text.
+    const match = roadmap.problem.match(/(\d+(?:[.,]\d+)?)\s*(?:%|persen)/i);
+    if (match) {
+      const current = parseFloat(match[1].replace(",", "."));
+      const target = Math.max(0, +(current * (1 - roadmap.goalPct / 100)).toFixed(current < 10 ? 1 : 0));
+      return `Menurunkan tingkat masalah dari ${current}% menjadi di bawah ${target}% dalam waktu ${months} bulan ke depan, terukur melalui metrik CTQ yang ditetapkan.`;
+    }
+    return `Menurunkan tingkat masalah sebesar ${roadmap.goalPct}% dalam waktu ${months} bulan ke depan, terukur melalui metrik CTQ yang ditetapkan.`;
   }, [roadmap]);
 
   return (
@@ -555,72 +563,56 @@ function SipocDiagram({
         </Badge>
       </div>
 
-      <div className="hidden lg:grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-y-3">
-        {sipocCols.map((c, ci) => (
-          <div key={c.key} className="contents">
-            <div className="col-span-1 row-start-1 flex items-center gap-2 px-3 pb-2 border-b border-slate-200">
-              <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
-                <c.icon className="size-4" />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                {c.label}
-              </span>
-            </div>
-            {ci < sipocCols.length - 1 && (
-              <div className="row-start-1 flex items-center justify-center text-slate-300 px-1">
-                <ArrowRight className="size-4" />
-              </div>
-            )}
-          </div>
-        ))}
-
-        {Array.from({ length: rows }).map((_, ri) =>
-          sipocCols.map((c, ci) => (
-            <div key={`${c.key}-${ri}`} className="contents">
+      <div className="-mx-2 overflow-x-auto pb-2">
+        <div className="min-w-[920px] grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-y-3 px-2">
+          {sipocCols.map((c, ci) => (
+            <div key={c.key} className="contents">
               <div
-                className="col-span-1 m-1 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 leading-snug"
-                style={{ gridRow: ri + 2, gridColumn: ci * 2 + 1 }}
+                className="flex items-center gap-2 px-3 pb-2 border-b border-slate-200"
+                style={{ gridRow: 1, gridColumn: ci * 2 + 1 }}
               >
-                {sipoc[c.key]?.[ri] ?? "—"}
+                <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
+                  <c.icon className="size-4" />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  {c.label}
+                </span>
               </div>
               {ci < sipocCols.length - 1 && (
                 <div
-                  className="flex items-center justify-center text-slate-300"
-                  style={{ gridRow: ri + 2, gridColumn: ci * 2 + 2 }}
+                  className="flex items-center justify-center text-slate-300 px-1"
+                  style={{ gridRow: 1, gridColumn: ci * 2 + 2 }}
                 >
-                  <ArrowRight className="size-3.5" />
+                  <ArrowRight className="size-4" />
                 </div>
               )}
             </div>
-          )),
-        )}
-      </div>
+          ))}
 
-      {/* Mobile / tablet stacked view */}
-      <div className="lg:hidden space-y-4">
-        {sipocCols.map((c) => (
-          <div key={c.key}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
-                <c.icon className="size-4" />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                {c.label}
-              </span>
-            </div>
-            <ol className="space-y-1.5">
-              {sipoc[c.key]?.map((v, i) => (
-                <li
-                  key={i}
-                  className="flex gap-2 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-700"
+          {Array.from({ length: rows }).map((_, ri) =>
+            sipocCols.map((c, ci) => (
+              <div key={`${c.key}-${ri}`} className="contents">
+                <div
+                  className="m-1 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 leading-snug"
+                  style={{ gridRow: ri + 2, gridColumn: ci * 2 + 1 }}
                 >
-                  <span className="text-slate-400 font-semibold">{i + 1}.</span>
-                  <span>{v}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        ))}
+                  {sipoc[c.key]?.[ri] ?? "—"}
+                </div>
+                {ci < sipocCols.length - 1 && (
+                  <div
+                    className="flex items-center justify-center text-slate-300"
+                    style={{ gridRow: ri + 2, gridColumn: ci * 2 + 2 }}
+                  >
+                    <ArrowRight className="size-3.5" />
+                  </div>
+                )}
+              </div>
+            )),
+          )}
+        </div>
+        <p className="lg:hidden mt-2 px-2 text-[11px] text-slate-400">
+          Geser ke samping untuk melihat seluruh kolom →
+        </p>
       </div>
     </div>
   );
