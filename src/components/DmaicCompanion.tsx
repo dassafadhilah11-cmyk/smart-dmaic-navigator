@@ -303,7 +303,15 @@ export function DmaicCompanion() {
 
   const goalStatement = useMemo(() => {
     if (!roadmap) return "";
-    return `Menurunkan tingkat masalah sebesar ${roadmap.goalPct}% dalam waktu ${roadmap.timelineWeeks / 4} bulan ke depan, terukur melalui metrik CTQ yang ditetapkan.`;
+    const months = roadmap.timelineWeeks / 4;
+    // Detect explicit current rate (e.g. "15%", "15 persen", "15 %") in the original problem text.
+    const match = roadmap.problem.match(/(\d+(?:[.,]\d+)?)\s*(?:%|persen)/i);
+    if (match) {
+      const current = parseFloat(match[1].replace(",", "."));
+      const target = Math.max(0, +(current * (1 - roadmap.goalPct / 100)).toFixed(current < 10 ? 1 : 0));
+      return `Menurunkan tingkat masalah dari ${current}% menjadi di bawah ${target}% dalam waktu ${months} bulan ke depan, terukur melalui metrik CTQ yang ditetapkan.`;
+    }
+    return `Menurunkan tingkat masalah sebesar ${roadmap.goalPct}% dalam waktu ${months} bulan ke depan, terukur melalui metrik CTQ yang ditetapkan.`;
   }, [roadmap]);
 
   return (
