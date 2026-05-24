@@ -510,6 +510,122 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/* ---------- SIPOC Diagram ---------- */
+
+const domainLabel: Record<Roadmap["domain"], string> = {
+  food: "Manufacturing · F&B",
+  defect: "Manufacturing",
+  delay: "Service Operations",
+  service: "Customer Service",
+  generic: "Digital / SaaS",
+};
+
+const sipocCols = [
+  { key: "suppliers", label: "Suppliers", icon: Truck, tone: "bg-rose-50 text-rose-600 ring-rose-200" },
+  { key: "inputs", label: "Inputs", icon: Package, tone: "bg-amber-50 text-amber-600 ring-amber-200" },
+  { key: "process", label: "Process", icon: Cog, tone: "bg-indigo-50 text-indigo-600 ring-indigo-200" },
+  { key: "outputs", label: "Outputs", icon: Boxes, tone: "bg-sky-50 text-sky-600 ring-sky-200" },
+  { key: "customers", label: "Customers", icon: Users, tone: "bg-emerald-50 text-emerald-600 ring-emerald-200" },
+] as const;
+
+function SipocDiagram({
+  sipoc,
+  domain,
+}: {
+  sipoc: Roadmap["sipoc"];
+  domain: Roadmap["domain"];
+}) {
+  const rows = 4;
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+            Define · Process Map
+          </p>
+          <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-800">
+            SIPOC Diagram
+          </h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Setiap baris terhubung: Supplier → Input → Process → Output → Customer.
+          </p>
+        </div>
+        <Badge variant="secondary" className="bg-sky-50 text-sky-700 ring-1 ring-sky-200">
+          Industri: {domainLabel[domain]}
+        </Badge>
+      </div>
+
+      <div className="hidden lg:grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-y-3">
+        {sipocCols.map((c, ci) => (
+          <div key={c.key} className="contents">
+            <div className="col-span-1 row-start-1 flex items-center gap-2 px-3 pb-2 border-b border-slate-200">
+              <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
+                <c.icon className="size-4" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                {c.label}
+              </span>
+            </div>
+            {ci < sipocCols.length - 1 && (
+              <div className="row-start-1 flex items-center justify-center text-slate-300 px-1">
+                <ArrowRight className="size-4" />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {Array.from({ length: rows }).map((_, ri) =>
+          sipocCols.map((c, ci) => (
+            <div key={`${c.key}-${ri}`} className="contents">
+              <div
+                className="col-span-1 m-1 rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 leading-snug"
+                style={{ gridRow: ri + 2, gridColumn: ci * 2 + 1 }}
+              >
+                {sipoc[c.key]?.[ri] ?? "—"}
+              </div>
+              {ci < sipocCols.length - 1 && (
+                <div
+                  className="flex items-center justify-center text-slate-300"
+                  style={{ gridRow: ri + 2, gridColumn: ci * 2 + 2 }}
+                >
+                  <ArrowRight className="size-3.5" />
+                </div>
+              )}
+            </div>
+          )),
+        )}
+      </div>
+
+      {/* Mobile / tablet stacked view */}
+      <div className="lg:hidden space-y-4">
+        {sipocCols.map((c) => (
+          <div key={c.key}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
+                <c.icon className="size-4" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                {c.label}
+              </span>
+            </div>
+            <ol className="space-y-1.5">
+              {sipoc[c.key]?.map((v, i) => (
+                <li
+                  key={i}
+                  className="flex gap-2 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-700"
+                >
+                  <span className="text-slate-400 font-semibold">{i + 1}.</span>
+                  <span>{v}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Visual Project Charter Dashboard ---------- */
 
 type Accent = "danger" | "success" | "info" | "primary";
