@@ -22,6 +22,12 @@ import {
   CheckCircle2,
   XCircle,
   Pencil,
+  Truck,
+  Package,
+  Cog,
+  Boxes,
+  Users,
+  ArrowRight,
 } from "lucide-react";
 
 type Roadmap = {
@@ -37,6 +43,13 @@ type Roadmap = {
   pokaYoke: string[];
   inScope: string[];
   outScope: string[];
+  sipoc: {
+    suppliers: string[];
+    inputs: string[];
+    process: string[];
+    outputs: string[];
+    customers: string[];
+  };
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
@@ -77,6 +90,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Aktivitas pemasaran & branding produk",
         "Pengembangan varian rasa baru",
       ],
+      sipoc: {
+        suppliers: ["Supplier bahan baku singkong", "Supplier minyak goreng", "Supplier kemasan", "Tim Maintenance Mesin"],
+        inputs: ["Singkong segar grade A", "Minyak goreng siap pakai", "Kemasan plastik & label", "Mesin penggorengan terkalibrasi"],
+        process: ["Sortir & pencucian bahan", "Penggorengan suhu terkontrol", "Penirisan & bumbu", "Pengemasan & sealing"],
+        outputs: ["Singkong bersih siap goreng", "Keripik matang seragam", "Keripik berbumbu siap kemas", "Produk jadi terkemas"],
+        customers: ["Stasiun penggorengan", "Stasiun bumbu", "Stasiun pengemasan", "Gudang barang jadi / distribusi"],
+      },
     },
     delay: {
       ctqs: [
@@ -104,6 +124,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Perubahan ERP / sistem inti",
         "Hiring tambahan headcount",
       ],
+      sipoc: {
+        suppliers: ["Departemen sebelumnya", "Planning & Scheduling", "Tim Supervisor Shift", "Tim IT / Sistem Internal"],
+        inputs: ["Work-in-progress masuk", "Jadwal & prioritas order", "Instruksi kerja harian", "Status sistem real-time"],
+        process: ["Penerimaan & antrian order", "Eksekusi pekerjaan utama", "Quality check antar stasiun", "Handover ke proses berikutnya"],
+        outputs: ["Order terdaftar & terprioritas", "Pekerjaan selesai sesuai takt", "Output lolos QC", "Order siap diteruskan"],
+        customers: ["Stasiun kerja berikutnya", "Supervisor produksi", "Tim QA internal", "Pelanggan akhir / next dept"],
+      },
     },
     service: {
       ctqs: [
@@ -131,6 +158,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Pengembangan produk baru",
         "Strategi marketing & promosi",
       ],
+      sipoc: {
+        suppliers: ["Pelanggan", "Tim Knowledge Management", "Sistem CRM / Ticketing", "Tim Supervisor CS"],
+        inputs: ["Keluhan & pertanyaan pelanggan", "Knowledge base & skrip", "Tiket terklasifikasi & SLA", "Eskalasi & arahan"],
+        process: ["Penerimaan keluhan multi-channel", "Klasifikasi & routing tiket", "Penanganan oleh agen CS", "Closure & follow-up"],
+        outputs: ["Tiket tercatat lengkap", "Tiket terarah ke agen tepat", "Solusi diberikan ke pelanggan", "Tiket closed & CSAT terkumpul"],
+        customers: ["Tim CS Tier-1", "Agen sesuai skill", "Pelanggan", "Manajemen & tim improvement"],
+      },
     },
     defect: {
       ctqs: [
@@ -158,6 +192,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Kontrak supplier strategis",
         "Investasi capex mesin baru",
       ],
+      sipoc: {
+        suppliers: ["Supplier bahan baku", "Tim Engineering / SOP", "Tim Maintenance", "Operator shift sebelumnya"],
+        inputs: ["Raw material sesuai spesifikasi", "SOP & parameter proses", "Mesin terkalibrasi & siap pakai", "Setup & handover shift"],
+        process: ["Persiapan & setup line", "Produksi sesuai parameter", "Inspeksi in-process", "Final QC & rilis batch"],
+        outputs: ["Line siap produksi", "Produk sesuai spesifikasi", "Defect terdeteksi dini", "Batch lolos QC"],
+        customers: ["Operator produksi", "Stasiun proses berikutnya", "Tim rework / scrap", "Gudang barang jadi"],
+      },
     },
     generic: {
       ctqs: [
@@ -185,6 +226,13 @@ function buildRoadmap(problem: string): Roadmap {
         "Investasi sistem / infrastruktur baru",
         "Faktor eksternal di luar kendali tim",
       ],
+      sipoc: {
+        suppliers: ["Pengguna / requester", "Tim Product", "Sistem upstream", "Tim On-call"],
+        inputs: ["Request / event masuk", "Spesifikasi & acceptance criteria", "Data & API dependency", "Monitoring & alert"],
+        process: ["Intake & triage request", "Eksekusi / development", "Verifikasi & testing", "Deploy & monitoring"],
+        outputs: ["Request terklasifikasi", "Solusi / fitur siap uji", "Release lolos verifikasi", "Perubahan live & terpantau"],
+        customers: ["Tim delivery", "Tim QA", "Tim Release / Ops", "Pengguna akhir"],
+      },
     },
   };
 
@@ -215,6 +263,7 @@ function buildRoadmap(problem: string): Roadmap {
     pokaYoke: b.pokaYoke!,
     inScope: b.inScope!,
     outScope: b.outScope!,
+    sipoc: b.sipoc!,
   };
 }
 
