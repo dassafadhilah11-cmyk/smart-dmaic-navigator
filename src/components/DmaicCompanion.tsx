@@ -382,12 +382,9 @@ export function DmaicCompanion() {
         {roadmap && (
           <div ref={reportRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Tabs defaultValue="define" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto bg-card border border-border p-1">
+              <TabsList className="grid w-full grid-cols-2 h-auto bg-card border border-border p-1">
                 <TabsTrigger value="define" className="gap-1.5"><Target className="size-4" />Define</TabsTrigger>
                 <TabsTrigger value="measure" className="gap-1.5"><BarChart3 className="size-4" />Measure</TabsTrigger>
-                <TabsTrigger value="analyze" className="gap-1.5"><Search className="size-4" />Analyze</TabsTrigger>
-                <TabsTrigger value="improve" className="gap-1.5"><Lightbulb className="size-4" />Improve</TabsTrigger>
-                <TabsTrigger value="control" className="gap-1.5"><ShieldCheck className="size-4" />Control</TabsTrigger>
               </TabsList>
 
               <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
@@ -398,121 +395,67 @@ export function DmaicCompanion() {
               </TabsContent>
 
               <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>📊 Data Collection Plan</CardTitle>
-                    <CardDescription>Mengukur performa proses saat ini sebelum melakukan perbaikan.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Section title="Pertanyaan Kunci CTQ (Critical to Quality)">
-                      <ul className="space-y-2">
-                        {roadmap.ctqs.map((q, i) => (
-                          <li key={i} className="flex gap-3 p-3 rounded-md bg-secondary/50 border border-border">
-                            <span className="text-primary font-semibold">{i + 1}.</span>
-                            <span className="text-foreground/90">{q}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </Section>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                <div className="grid gap-5 md:grid-cols-3">
+                  <Card className="border border-border shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <BarChart3 className="size-5 text-primary" />
+                        Data Collection Plan
+                      </CardTitle>
+                      <CardDescription>
+                        Structured plan for gathering baseline process data and CTQ metrics.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-48 flex items-center justify-center text-muted-foreground text-sm">
+                      <span className="flex flex-col items-center gap-2">
+                        <span className="inline-flex items-center justify-center rounded-full bg-muted p-3">
+                          <ListChecks className="size-6 text-muted-foreground/60" />
+                        </span>
+                        Content will be generated here.
+                      </span>
+                    </CardContent>
+                  </Card>
 
-              <TabsContent value="analyze" className="mt-6 animate-in fade-in-50 duration-300">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>🔍 Root Cause Analysis Tools</CardTitle>
-                    <CardDescription>Rekomendasi alat analisis untuk mencari akar penyebab masalah.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-6 md:grid-cols-2">
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Badge variant="secondary">Kualitatif</Badge>
-                      </h4>
-                      <ul className="space-y-3">
-                        {roadmap.qualitative.map((t) => (
-                          <li key={t.name} className="p-3 rounded-md border border-border bg-card">
-                            <p className="font-medium text-foreground">{t.name}</p>
-                            <p className="text-sm text-muted-foreground mt-1">{t.desc}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Badge>Kuantitatif / Statistik</Badge>
-                      </h4>
-                      <ul className="space-y-3">
-                        {roadmap.quantitative.map((t) => (
-                          <li key={t.name} className="p-3 rounded-md border border-border bg-card">
-                            <p className="font-medium text-foreground">{t.name}</p>
-                            <p className="text-sm text-muted-foreground mt-1">{t.desc}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  <Card className="border border-border shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Crosshair className="size-5 text-primary" />
+                        DPMO & Sigma Level Calculator
+                      </CardTitle>
+                      <CardDescription>
+                        Convert defect opportunities into DPMO and current Sigma performance.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-48 flex items-center justify-center text-muted-foreground text-sm">
+                      <span className="flex flex-col items-center gap-2">
+                        <span className="inline-flex items-center justify-center rounded-full bg-muted p-3">
+                          <Target className="size-6 text-muted-foreground/60" />
+                        </span>
+                        Content will be generated here.
+                      </span>
+                    </CardContent>
+                  </Card>
 
-              <TabsContent value="improve" className="mt-6 animate-in fade-in-50 duration-300">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>💡 Kaizen & Action Plan</CardTitle>
-                    <CardDescription>Strategi solusi perbaikan berdasarkan pola masalah Anda.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto rounded-lg border border-border">
-                      <table className="w-full text-sm">
-                        <thead className="bg-secondary text-foreground">
-                          <tr>
-                            <th className="text-left p-3 font-semibold">Potensi Kegagalan</th>
-                            <th className="text-left p-3 font-semibold">Solusi Perbaikan</th>
-                            <th className="text-left p-3 font-semibold">Metode</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {roadmap.actions.map((a, i) => (
-                            <tr key={i} className="border-t border-border hover:bg-secondary/40 transition-colors">
-                              <td className="p-3 text-foreground/90">{a.failure}</td>
-                              <td className="p-3 text-foreground/90">{a.solution}</td>
-                              <td className="p-3"><Badge variant="outline">{a.method}</Badge></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="control" className="mt-6 animate-in fade-in-50 duration-300">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>🛡️ Control & Monitoring Plan</CardTitle>
-                    <CardDescription>Mengunci perbaikan agar kualitas tetap terjaga jangka panjang.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    <Section title="Mistake-Proofing (Poka-Yoke)">
-                      <ul className="space-y-2">
-                        {roadmap.pokaYoke.map((p, i) => (
-                          <li key={i} className="flex gap-2 text-foreground/90">
-                            <span className="text-primary">✓</span>{p}
-                          </li>
-                        ))}
-                      </ul>
-                    </Section>
-                    <Section title="SPC & Monitoring">
-                      <ul className="space-y-2">
-                        {roadmap.controls.map((c, i) => (
-                          <li key={i} className="flex gap-2 text-foreground/90">
-                            <span className="text-primary">•</span>{c}
-                          </li>
-                        ))}
-                      </ul>
-                    </Section>
-                  </CardContent>
-                </Card>
+                  <Card className="border border-border shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <ShieldCheck className="size-5 text-primary" />
+                        Control Chart Recommendation
+                      </CardTitle>
+                      <CardDescription>
+                        Suggested SPC chart type based on data type and sample size.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-48 flex items-center justify-center text-muted-foreground text-sm">
+                      <span className="flex flex-col items-center gap-2">
+                        <span className="inline-flex items-center justify-center rounded-full bg-muted p-3">
+                          <BarChart3 className="size-6 text-muted-foreground/60" />
+                        </span>
+                        Content will be generated here.
+                      </span>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
 
