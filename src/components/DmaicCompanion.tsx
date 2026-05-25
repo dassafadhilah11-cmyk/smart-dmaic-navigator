@@ -583,12 +583,15 @@ function SipocDiagram({
         </Badge>
       </div>
 
-      <div className="-mx-2 overflow-x-auto pb-2">
+      <div
+        className="-mx-2 overflow-x-auto pb-2"
+        style={{ overflowY: "visible" }}
+      >
         <div className="min-w-[920px] grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-y-3 px-2">
           {sipocCols.map((c, ci) => (
             <div key={c.key} className="contents">
               <div
-                className="flex items-center gap-2 px-3 pb-2 border-b border-slate-200"
+                className="sticky top-0 z-20 flex items-center gap-2 px-3 py-2 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80"
                 style={{ gridRow: 1, gridColumn: ci * 2 + 1 }}
               >
                 <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
@@ -600,7 +603,7 @@ function SipocDiagram({
               </div>
               {ci < sipocCols.length - 1 && (
                 <div
-                  className="flex items-center justify-center text-slate-300 px-1"
+                  className="sticky top-0 z-20 flex items-center justify-center text-slate-300 px-1 py-2 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-slate-200"
                   style={{ gridRow: 1, gridColumn: ci * 2 + 2 }}
                 >
                   <ArrowRight className="size-4" />
