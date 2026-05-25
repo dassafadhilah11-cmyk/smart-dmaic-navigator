@@ -28,6 +28,7 @@ import {
   Boxes,
   Users,
   ArrowRight,
+  RotateCcw,
 } from "lucide-react";
 
 type Roadmap = {
@@ -301,6 +302,13 @@ export function DmaicCompanion() {
     }
   };
 
+  const handleReset = () => {
+    setInput("");
+    setRoadmap(null);
+    setLoading(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const goalStatement = useMemo(() => {
     if (!roadmap) return "";
     const months = roadmap.timelineWeeks / 4;
@@ -347,15 +355,27 @@ export function DmaicCompanion() {
               placeholder="Tulis masalah Anda di sini..."
               className="min-h-32 resize-none text-base"
             />
-            <Button
-              onClick={handleGenerate}
-              disabled={!input.trim() || loading}
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <Sparkles className="mr-2 size-4" />
-              {loading ? "Menganalisis…" : "Generate DMAIC Roadmap"}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={handleGenerate}
+                disabled={!input.trim() || loading}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                <Sparkles className="mr-2 size-4" />
+                {loading ? "Menganalisis…" : "Generate DMAIC Roadmap"}
+              </Button>
+              <Button
+                onClick={handleReset}
+                disabled={loading || (!input && !roadmap)}
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                <RotateCcw className="mr-2 size-4" />
+                Reset Project
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -563,12 +583,15 @@ function SipocDiagram({
         </Badge>
       </div>
 
-      <div className="-mx-2 overflow-x-auto pb-2">
+      <div
+        className="-mx-2 overflow-x-auto pb-2"
+        style={{ overflowY: "visible" }}
+      >
         <div className="min-w-[920px] grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] items-stretch gap-y-3 px-2">
           {sipocCols.map((c, ci) => (
             <div key={c.key} className="contents">
               <div
-                className="flex items-center gap-2 px-3 pb-2 border-b border-slate-200"
+                className="sticky top-0 z-20 flex items-center gap-2 px-3 py-2 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80"
                 style={{ gridRow: 1, gridColumn: ci * 2 + 1 }}
               >
                 <div className={`rounded-lg p-1.5 ring-1 ${c.tone}`}>
@@ -580,7 +603,7 @@ function SipocDiagram({
               </div>
               {ci < sipocCols.length - 1 && (
                 <div
-                  className="flex items-center justify-center text-slate-300 px-1"
+                  className="sticky top-0 z-20 flex items-center justify-center text-slate-300 px-1 py-2 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-slate-200"
                   style={{ gridRow: 1, gridColumn: ci * 2 + 2 }}
                 >
                   <ArrowRight className="size-4" />
