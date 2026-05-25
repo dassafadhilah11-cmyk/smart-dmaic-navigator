@@ -28,6 +28,7 @@ import {
   Boxes,
   Users,
   ArrowRight,
+  RotateCcw,
 } from "lucide-react";
 
 type Roadmap = {
@@ -301,6 +302,13 @@ export function DmaicCompanion() {
     }
   };
 
+  const handleReset = () => {
+    setInput("");
+    setRoadmap(null);
+    setLoading(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const goalStatement = useMemo(() => {
     if (!roadmap) return "";
     const months = roadmap.timelineWeeks / 4;
@@ -347,15 +355,27 @@ export function DmaicCompanion() {
               placeholder="Tulis masalah Anda di sini..."
               className="min-h-32 resize-none text-base"
             />
-            <Button
-              onClick={handleGenerate}
-              disabled={!input.trim() || loading}
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <Sparkles className="mr-2 size-4" />
-              {loading ? "Menganalisis…" : "Generate DMAIC Roadmap"}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={handleGenerate}
+                disabled={!input.trim() || loading}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                <Sparkles className="mr-2 size-4" />
+                {loading ? "Menganalisis…" : "Generate DMAIC Roadmap"}
+              </Button>
+              <Button
+                onClick={handleReset}
+                disabled={loading || (!input && !roadmap)}
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                <RotateCcw className="mr-2 size-4" />
+                Reset Project
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
