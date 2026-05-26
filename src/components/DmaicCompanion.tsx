@@ -30,6 +30,15 @@ import {
   ArrowRight,
   RotateCcw,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type Roadmap = {
   problem: string;
@@ -381,84 +390,6 @@ export function DmaicCompanion() {
 
         {roadmap && (
           <div ref={reportRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Tabs defaultValue="define" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-auto bg-card border border-border p-1">
-                <TabsTrigger value="define" className="gap-1.5"><Target className="size-4" />Define</TabsTrigger>
-                <TabsTrigger value="measure" className="gap-1.5"><BarChart3 className="size-4" />Measure</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
-                <VisualProjectCharter roadmap={roadmap} initialGoal={goalStatement} />
-                <div className="mt-6">
-                  <SipocDiagram sipoc={roadmap.sipoc} domain={roadmap.domain} />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
-                <div className="grid gap-5 md:grid-cols-3">
-                  <Card className="border border-border shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <BarChart3 className="size-5 text-primary" />
-                        Data Collection Plan
-                      </CardTitle>
-                      <CardDescription>
-                        Structured plan for gathering baseline process data and CTQ metrics.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-                      <span className="flex flex-col items-center gap-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-muted p-3">
-                          <ListChecks className="size-6 text-muted-foreground/60" />
-                        </span>
-                        Content will be generated here.
-                      </span>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border border-border shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <Crosshair className="size-5 text-primary" />
-                        DPMO & Sigma Level Calculator
-                      </CardTitle>
-                      <CardDescription>
-                        Convert defect opportunities into DPMO and current Sigma performance.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-                      <span className="flex flex-col items-center gap-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-muted p-3">
-                          <Target className="size-6 text-muted-foreground/60" />
-                        </span>
-                        Content will be generated here.
-                      </span>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border border-border shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        <ShieldCheck className="size-5 text-primary" />
-                        Control Chart Recommendation
-                      </CardTitle>
-                      <CardDescription>
-                        Suggested SPC chart type based on data type and sample size.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-                      <span className="flex flex-col items-center gap-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-muted p-3">
-                          <BarChart3 className="size-6 text-muted-foreground/60" />
-                        </span>
-                        Content will be generated here.
-                      </span>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            </Tabs>
-
             <div className="flex justify-center pt-4 print:hidden">
               <Button onClick={() => window.print()} variant="outline" size="lg">
                 <Printer className="mr-2 size-4" />
@@ -467,9 +398,271 @@ export function DmaicCompanion() {
             </div>
           </div>
         )}
+
+        <Tabs defaultValue="define" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto bg-card border border-border p-1">
+            <TabsTrigger value="define" className="gap-1.5"><Target className="size-4" />Define</TabsTrigger>
+            <TabsTrigger value="measure" className="gap-1.5"><BarChart3 className="size-4" />Measure</TabsTrigger>
+            <TabsTrigger value="analyze" className="gap-1.5"><Search className="size-4" />Analyze</TabsTrigger>
+            <TabsTrigger value="improve" className="gap-1.5"><Lightbulb className="size-4" />Improve</TabsTrigger>
+            <TabsTrigger value="control" className="gap-1.5"><ShieldCheck className="size-4" />Control</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="define" className="mt-6 animate-in fade-in-50 duration-300">
+            {roadmap ? (
+              <>
+                <VisualProjectCharter roadmap={roadmap} initialGoal={goalStatement} />
+                <div className="mt-6">
+                  <SipocDiagram sipoc={roadmap.sipoc} domain={roadmap.domain} />
+                </div>
+              </>
+            ) : (
+              <EmptyPhasePlaceholder label="Tulis masalah Anda di atas, lalu klik Generate untuk membangun Project Charter & SIPOC." />
+            )}
+          </TabsContent>
+
+          <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
+            <div className="grid gap-5 md:grid-cols-3">
+              <DataCollectionPlanCard roadmap={roadmap} />
+              <SigmaCalculatorCard />
+              <ControlChartCard roadmap={roadmap} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analyze" className="mt-6 animate-in fade-in-50 duration-300">
+            <EmptyPhasePlaceholder label="Fase Analyze akan menampilkan Fishbone, 5 Whys, dan verifikasi akar masalah." />
+          </TabsContent>
+          <TabsContent value="improve" className="mt-6 animate-in fade-in-50 duration-300">
+            <EmptyPhasePlaceholder label="Fase Improve akan menampilkan rekomendasi solusi, FMEA, dan rencana pilot." />
+          </TabsContent>
+          <TabsContent value="control" className="mt-6 animate-in fade-in-50 duration-300">
+            <EmptyPhasePlaceholder label="Fase Control akan menampilkan Control Plan, SOP, dan handover." />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
+}
+
+/* ---------- Measure phase components ---------- */
+
+function EmptyPhasePlaceholder({ label }: { label: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center text-sm text-slate-500">
+      {label}
+    </div>
+  );
+}
+
+function DataCollectionPlanCard({ roadmap }: { roadmap: Roadmap | null }) {
+  const rows = roadmap
+    ? roadmap.ctqs.map((ctq, i) => ({
+        metric: ctq.replace(/^Berapa\s+/i, "").replace(/\?$/, ""),
+        dataType: i % 2 === 0 ? "Continuous" : "Discrete / Attribute",
+        tool:
+          roadmap.domain === "food" || roadmap.domain === "defect"
+            ? ["Check Sheet", "Sensor Log", "Pareto Tally", "QC Inspection Form"][i % 4]
+            : roadmap.domain === "delay"
+              ? ["Time Study", "Andon Log", "Throughput Counter", "Cycle Time Sheet"][i % 4]
+              : ["CRM Ticket Log", "Survey CSAT", "Audit Form", "System Report"][i % 4],
+        sample: ["30 sampel / shift", "Seluruh batch / hari", "n ≥ 50 / minggu", "Sampling acak 10%"][i % 4],
+      }))
+    : [];
+
+  return (
+    <Card className="border border-border shadow-sm md:col-span-2">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ListChecks className="size-5 text-primary" />
+          Data Collection Plan
+        </CardTitle>
+        <CardDescription>
+          Rencana pengumpulan data baseline untuk setiap CTQ.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-lg border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Metric / CTQ</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Data Type</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Measurement Tool</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Sample Size</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length === 0
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 4 }).map((_, j) => (
+                        <TableCell key={j} className="px-3 py-3">
+                          <div className="h-3 rounded bg-slate-100" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : rows.map((r, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="px-3 py-2.5 text-sm text-slate-700 align-top">{r.metric}</TableCell>
+                      <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">{r.dataType}</TableCell>
+                      <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">{r.tool}</TableCell>
+                      <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">{r.sample}</TableCell>
+                    </TableRow>
+                  ))}
+            </TableBody>
+          </Table>
+        </div>
+        {rows.length === 0 && (
+          <p className="mt-3 text-xs text-slate-400">
+            Tabel akan terisi otomatis setelah Generate DMAIC Roadmap.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function SigmaCalculatorCard() {
+  const [units, setUnits] = useState<string>("1000");
+  const [opps, setOpps] = useState<string>("1");
+  const [defects, setDefects] = useState<string>("50");
+
+  const { dpmo, sigma, yieldPct } = useMemo(() => {
+    const u = parseFloat(units);
+    const o = parseFloat(opps);
+    const d = parseFloat(defects);
+    if (!u || !o || u <= 0 || o <= 0 || isNaN(d) || d < 0) {
+      return { dpmo: null as number | null, sigma: null as number | null, yieldPct: null as number | null };
+    }
+    const totalOpps = u * o;
+    const dpo = d / totalOpps;
+    const dpmoVal = dpo * 1_000_000;
+    const y = Math.max(0, Math.min(1, 1 - dpo));
+    // Approximation: Sigma ≈ 0.8406 + sqrt(29.37 - 2.221 * ln(DPMO)) + 1.5 shift
+    let sig: number | null = null;
+    if (dpmoVal > 0 && dpmoVal < 1_000_000) {
+      const inner = 29.37 - 2.221 * Math.log(dpmoVal);
+      sig = inner > 0 ? +(0.8406 + Math.sqrt(inner) + 1.5).toFixed(2) : null;
+    } else if (dpmoVal === 0) {
+      sig = 6;
+    }
+    return { dpmo: Math.round(dpmoVal), sigma: sig, yieldPct: +(y * 100).toFixed(2) };
+  }, [units, opps, defects]);
+
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Crosshair className="size-5 text-primary" />
+          DPMO & Sigma Level Calculator
+        </CardTitle>
+        <CardDescription>Hitung performa proses dari data inspeksi Anda.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-slate-600">Total Units Inspected</label>
+          <Input type="number" min="0" value={units} onChange={(e) => setUnits(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-slate-600">Defect Opportunities per Unit</label>
+          <Input type="number" min="0" value={opps} onChange={(e) => setOpps(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-slate-600">Total Defects Found</label>
+          <Input type="number" min="0" value={defects} onChange={(e) => setDefects(e.target.value)} />
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">DPMO</p>
+            <p className="font-display text-2xl font-bold text-slate-800 mt-0.5">
+              {dpmo === null ? "—" : dpmo.toLocaleString()}
+            </p>
+          </div>
+          <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Sigma Level</p>
+            <p className="font-display text-2xl font-bold text-slate-800 mt-0.5">
+              {sigma === null ? "—" : `${sigma}σ`}
+            </p>
+          </div>
+        </div>
+        {yieldPct !== null && (
+          <p className="text-xs text-slate-500">
+            Process Yield: <span className="font-semibold text-slate-700">{yieldPct}%</span>
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ControlChartCard({ roadmap }: { roadmap: Roadmap | null }) {
+  const rec = roadmap ? recommendChart(roadmap.domain) : null;
+
+  return (
+    <Card className="border border-border shadow-sm md:col-span-3">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ShieldCheck className="size-5 text-primary" />
+          Control Chart Recommendation
+        </CardTitle>
+        <CardDescription>
+          Rekomendasi SPC chart berdasarkan jenis data dan konteks proses.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {rec ? (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="shrink-0 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50 ring-1 ring-sky-200 px-5 py-4 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-600">Recommended</p>
+              <p className="font-display text-2xl font-bold text-slate-800 mt-1">{rec.chart}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{rec.dataType}</p>
+            </div>
+            <p className="text-sm leading-relaxed text-slate-700 flex-1">{rec.rationale}</p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/40 p-6 text-center text-sm text-slate-500">
+            Awaiting project generation…
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function recommendChart(domain: Roadmap["domain"]): { chart: string; dataType: string; rationale: string } {
+  switch (domain) {
+    case "food":
+    case "defect":
+      return {
+        chart: "p-Chart",
+        dataType: "Attribute · Proporsi cacat",
+        rationale:
+          "Karena data berupa proporsi unit cacat per batch dengan ukuran sampel yang dapat bervariasi, p-Chart paling tepat untuk memantau stabilitas tingkat defect dari waktu ke waktu.",
+      };
+    case "delay":
+      return {
+        chart: "X̄-R Chart",
+        dataType: "Continuous · Cycle / lead time",
+        rationale:
+          "Untuk metrik waktu yang continuous dan sub-grup kecil (n=2–10), X̄-R Chart memantau rata-rata dan variasi cycle time secara simultan untuk mendeteksi pergeseran proses.",
+      };
+    case "service":
+      return {
+        chart: "u-Chart",
+        dataType: "Attribute · Jumlah keluhan per unit",
+        rationale:
+          "Karena tiap pelanggan dapat menghasilkan lebih dari satu keluhan dan area of opportunity bervariasi, u-Chart memantau jumlah defect per unit dengan tepat.",
+      };
+    default:
+      return {
+        chart: "I-MR Chart",
+        dataType: "Continuous · Individual measurements",
+        rationale:
+          "Untuk data individual yang dikumpulkan satu per satu tanpa sub-grup natural, I-MR Chart memantau nilai individu dan moving range untuk variasi proses.",
+      };
+  }
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
