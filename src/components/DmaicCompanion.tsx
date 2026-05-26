@@ -524,7 +524,6 @@ function DataCollectionPlanCard({ roadmap }: { roadmap: Roadmap | null }) {
 }
 
 function SigmaCalculatorCard() {
-  // Body below uses normSInv defined at module scope.
   const [units, setUnits] = useState<string>("1000");
   const [opps, setOpps] = useState<string>("1");
   const [defects, setDefects] = useState<string>("50");
