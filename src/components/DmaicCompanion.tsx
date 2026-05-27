@@ -536,10 +536,24 @@ export function DmaicCompanion() {
             )}
           </TabsContent>
           <TabsContent value="improve" className="mt-6 animate-in fade-in-50 duration-300">
-            <EmptyPhasePlaceholder label="Fase Improve akan menampilkan rekomendasi solusi, FMEA, dan rencana pilot." />
+            {roadmap ? (
+              <div className="grid gap-5 lg:grid-cols-3">
+                <ImproveActionPlanCard roadmap={roadmap} />
+                <LeanToolCard roadmap={roadmap} />
+              </div>
+            ) : (
+              <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan Action Plan 5W+1H dan rekomendasi Lean Tool." />
+            )}
           </TabsContent>
           <TabsContent value="control" className="mt-6 animate-in fade-in-50 duration-300">
-            <EmptyPhasePlaceholder label="Fase Control akan menampilkan Control Plan, SOP, dan handover." />
+            {roadmap ? (
+              <div className="grid gap-5 lg:grid-cols-3">
+                <ControlPlanCard roadmap={roadmap} />
+                <ReactionPlanCard roadmap={roadmap} />
+              </div>
+            ) : (
+              <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan Control Plan dan Reaction Plan (OCAP)." />
+            )}
           </TabsContent>
         </Tabs>
       </main>
