@@ -282,12 +282,73 @@ function buildRoadmap(problem: string): Roadmap {
   };
 
   const b = base[domain];
+  const ctqs = b.ctqs!;
+  const metricNouns = ctqs.map((q) =>
+    q
+      .replace(/^(Berapa|Bagaimana|Apa|Kapan|Siapa|Channel)\s+/i, "")
+      .replace(/\?$/, "")
+      .split(/\s+/)
+      .slice(0, 4)
+      .join(" ")
+      .replace(/^./, (c) => c.toUpperCase()),
+  );
+  const fishboneByDomain: Record<Roadmap["domain"], Roadmap["fishbone"]> = {
+    food: {
+      manpower: ["Operator kurang pelatihan", "Kelelahan shift malam"],
+      machine: ["Kalibrasi suhu tidak stabil", "Timer penggorengan aus"],
+      method: ["SOP belum standar antar shift", "Setup awal tidak konsisten"],
+      material: ["Variasi grade singkong", "Mutu minyak menurun"],
+      measurement: ["Sensor suhu tidak terkalibrasi", "Sampling QC terlalu jarang"],
+      motherNature: ["Kelembapan ruang produksi tinggi", "Fluktuasi suhu lingkungan"],
+    },
+    defect: {
+      manpower: ["Kompetensi operator beragam", "Handover shift tidak rapi"],
+      machine: ["Mesin lama, drift parameter", "Tooling aus"],
+      method: ["SOP tidak visual", "Inspeksi end-of-line saja"],
+      material: ["Raw material variatif", "Lot supplier campur"],
+      measurement: ["Alat ukur tidak diverifikasi", "Definisi defect ambigu"],
+      motherNature: ["Debu di area kerja", "Pencahayaan kurang"],
+    },
+    delay: {
+      manpower: ["Beban kerja tidak seimbang", "Skill mix tidak merata"],
+      machine: ["Sistem antrian lambat", "Downtime peralatan"],
+      method: ["Rute proses berputar", "Tidak ada prioritisasi order"],
+      material: ["WIP menumpuk", "Komponen telat datang"],
+      measurement: ["Cycle time tidak dipantau", "KPI per stasiun tidak ada"],
+      motherNature: ["Jam sibuk berimpit", "Layout sempit"],
+    },
+    service: {
+      manpower: ["Skrip agen tidak konsisten", "Turnover CS tinggi"],
+      machine: ["Sistem CRM lambat", "Telepon sering drop"],
+      method: ["Eskalasi tidak jelas", "Routing tiket manual"],
+      material: ["Knowledge base usang", "Template balasan minim"],
+      measurement: ["SLA tidak dipantau real-time", "CSAT jarang diukur"],
+      motherNature: ["Lonjakan trafik jam sibuk", "Gangguan jaringan eksternal"],
+    },
+    generic: {
+      manpower: ["Akuntabilitas peran tidak jelas", "Pelatihan kurang"],
+      machine: ["Sistem legacy", "Integrasi rapuh"],
+      method: ["Proses belum terdokumentasi", "Banyak workaround manual"],
+      material: ["Data input tidak bersih", "Dependency eksternal"],
+      measurement: ["Metrik tidak terdefinisi", "Logging minim"],
+      motherNature: ["Beban puncak tak terduga", "Perubahan regulasi"],
+    },
+  };
   return {
     problem: problem.trim(),
     domain,
     goalPct: 50,
     timelineWeeks: 12,
-    ctqs: b.ctqs!,
+    ctqs,
+    metricNouns,
+    fiveWhys: [
+      "Why 1: Mengapa masalah ini muncul? — Karena output proses tidak konsisten terhadap standar.",
+      "Why 2: Mengapa output tidak konsisten? — Karena parameter kunci proses bervariasi antar shift.",
+      "Why 3: Mengapa parameter bervariasi? — Karena SOP tidak dijalankan secara seragam.",
+      "Why 4: Mengapa SOP tidak seragam? — Karena pelatihan dan kontrol visual belum memadai.",
+      "Why 5: Mengapa kontrol belum memadai? — Karena sistem monitoring & akuntabilitas belum dirancang formal (root cause).",
+    ],
+    fishbone: fishboneByDomain[domain],
     qualitative: [
       { name: "Fishbone Diagram (5M+1E)", desc: "Telusuri penyebab dari Man, Machine, Method, Material, Measurement, Environment." },
       { name: "5 Whys", desc: "Tanyakan 'mengapa' berulang hingga akar masalah ditemukan." },
