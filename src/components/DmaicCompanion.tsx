@@ -785,6 +785,99 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/* ---------- Analyze phase: 5 Whys + Fishbone ---------- */
+
+function FiveWhysCard({ roadmap }: { roadmap: Roadmap }) {
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Search className="size-5 text-primary" />
+          5 Whys Analysis
+        </CardTitle>
+        <CardDescription>Rantai kausal dari gejala ke akar masalah sistemik.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ol className="space-y-3">
+          {roadmap.fiveWhys.map((w, i) => {
+            const isRoot = i === roadmap.fiveWhys.length - 1;
+            return (
+              <li key={i} className="flex gap-3">
+                <div
+                  className={`shrink-0 mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ring-1 ${
+                    isRoot
+                      ? "bg-rose-50 text-rose-600 ring-rose-200"
+                      : "bg-indigo-50 text-indigo-600 ring-indigo-200"
+                  }`}
+                >
+                  {i + 1}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm leading-relaxed text-slate-700">{w}</p>
+                  {isRoot && (
+                    <Badge variant="secondary" className="mt-1 bg-rose-50 text-rose-700 ring-1 ring-rose-200">
+                      Root Cause
+                    </Badge>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </CardContent>
+    </Card>
+  );
+}
+
+const fishboneCategories = [
+  { key: "manpower",     label: "Manpower",       tone: "bg-rose-50 text-rose-700 ring-rose-200" },
+  { key: "machine",      label: "Machine",        tone: "bg-amber-50 text-amber-700 ring-amber-200" },
+  { key: "method",       label: "Method",         tone: "bg-indigo-50 text-indigo-700 ring-indigo-200" },
+  { key: "material",     label: "Material",       tone: "bg-sky-50 text-sky-700 ring-sky-200" },
+  { key: "measurement",  label: "Measurement",    tone: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
+  { key: "motherNature", label: "Mother Nature",  tone: "bg-violet-50 text-violet-700 ring-violet-200" },
+] as const;
+
+function FishboneCard({ roadmap }: { roadmap: Roadmap }) {
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <AlertOctagon className="size-5 text-primary" />
+          Fishbone Diagram (6M)
+        </CardTitle>
+        <CardDescription>
+          Kategorisasi potensi penyebab: Manpower, Machine, Method, Material, Measurement, Mother Nature.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {fishboneCategories.map((cat) => (
+            <div
+              key={cat.key}
+              className="rounded-xl border border-slate-200 bg-slate-50/50 p-3"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ring-1 ${cat.tone}`}>
+                  {cat.label}
+                </span>
+              </div>
+              <ul className="space-y-1.5">
+                {roadmap.fishbone[cat.key].map((cause, i) => (
+                  <li key={i} className="flex gap-2 text-sm text-slate-700 leading-snug">
+                    <span className="text-slate-400 mt-1">•</span>
+                    <span>{cause}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ---------- SIPOC Diagram ---------- */
 
 const domainLabel: Record<Roadmap["domain"], string> = {
