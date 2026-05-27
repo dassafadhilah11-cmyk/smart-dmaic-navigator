@@ -536,10 +536,24 @@ export function DmaicCompanion() {
             )}
           </TabsContent>
           <TabsContent value="improve" className="mt-6 animate-in fade-in-50 duration-300">
-            <EmptyPhasePlaceholder label="Fase Improve akan menampilkan rekomendasi solusi, FMEA, dan rencana pilot." />
+            {roadmap ? (
+              <div className="grid gap-5 lg:grid-cols-3">
+                <ImproveActionPlanCard roadmap={roadmap} />
+                <LeanToolCard roadmap={roadmap} />
+              </div>
+            ) : (
+              <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan Action Plan 5W+1H dan rekomendasi Lean Tool." />
+            )}
           </TabsContent>
           <TabsContent value="control" className="mt-6 animate-in fade-in-50 duration-300">
-            <EmptyPhasePlaceholder label="Fase Control akan menampilkan Control Plan, SOP, dan handover." />
+            {roadmap ? (
+              <div className="grid gap-5 lg:grid-cols-3">
+                <ControlPlanCard roadmap={roadmap} />
+                <ReactionPlanCard roadmap={roadmap} />
+              </div>
+            ) : (
+              <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan Control Plan dan Reaction Plan (OCAP)." />
+            )}
           </TabsContent>
         </Tabs>
       </main>
@@ -1253,5 +1267,253 @@ function VisualProjectCharter({
         </CharterCard>
       </div>
     </div>
+  );
+}
+
+/* ---------- Improve phase: 5W+1H + Lean Tool ---------- */
+
+const ownerByDomain: Record<Roadmap["domain"], string[]> = {
+  food: ["Production Supervisor", "QA Engineer", "Maintenance Lead"],
+  defect: ["Line Leader", "Quality Engineer", "Process Engineer"],
+  delay: ["Operations Manager", "Shift Supervisor", "Continuous Improvement Lead"],
+  service: ["CS Team Lead", "Knowledge Manager", "Service Quality Analyst"],
+  generic: ["Process Owner", "Tech Lead", "Project Manager"],
+};
+
+const leanToolByDomain: Record<Roadmap["domain"], { tool: string; rationale: string }> = {
+  food: {
+    tool: "Poka-Yoke (Mistake-Proofing)",
+    rationale:
+      "Karena akar masalah didominasi variasi parameter mesin dan kelalaian operator, mekanisme pencegahan kesalahan otomatis (sensor, interlock, alarm) paling efektif menjaga konsistensi setiap batch.",
+  },
+  defect: {
+    tool: "Poka-Yoke + Standard Work",
+    rationale:
+      "Kombinasi mistake-proofing pada titik kritis dan standardisasi instruksi kerja visual akan menutup variasi proses serta mempercepat deteksi cacat di sumber.",
+  },
+  delay: {
+    tool: "Kaizen Event + 5S",
+    rationale:
+      "Bottleneck dan layout yang tidak efisien paling cepat diselesaikan lewat rapid improvement workshop dan penataan area kerja 5S untuk menstabilkan flow.",
+  },
+  service: {
+    tool: "Standard Work + Visual Management",
+    rationale:
+      "Inkonsistensi respons frontline diatasi dengan skrip terstandar, knowledge base, dan dashboard SLA real-time agar setiap interaksi pelanggan mengikuti standar yang sama.",
+  },
+  generic: {
+    tool: "Kaizen + PDCA",
+    rationale:
+      "Pendekatan perbaikan iteratif kecil (PDCA) cocok untuk konteks digital/proses yang masih membutuhkan eksperimen cepat sebelum solusi dibakukan.",
+  },
+};
+
+function ImproveActionPlanCard({ roadmap }: { roadmap: Roadmap }) {
+  const owners = ownerByDomain[roadmap.domain];
+  const rows = roadmap.actions.slice(0, 3).map((a, i) => ({
+    what: a.solution,
+    why: `Mengatasi: ${a.failure}`,
+    who: owners[i % owners.length],
+    how: a.method,
+  }));
+  return (
+    <Card className="border border-border shadow-sm lg:col-span-2">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Lightbulb className="size-5 text-primary" />
+          Improvement Action Plan (5W + 1H)
+        </CardTitle>
+        <CardDescription>
+          Tiga solusi prioritas berbasis akar masalah, lengkap dengan owner dan metode implementasi.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-lg border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">What (Action Item)</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Why (Purpose)</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Who (Owner)</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">How (Method)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r, i) => (
+                <TableRow key={i}>
+                  <TableCell className="px-3 py-2.5 text-sm font-medium text-slate-800 align-top">{r.what}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">{r.why}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">{r.who}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">
+                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200">
+                      {r.how}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LeanToolCard({ roadmap }: { roadmap: Roadmap }) {
+  const rec = leanToolByDomain[roadmap.domain];
+  return (
+    <Card className="border border-border shadow-sm bg-gradient-to-br from-amber-50/60 to-white">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Sparkles className="size-5 text-amber-500" />
+          Lean Tool Recommendation
+        </CardTitle>
+        <CardDescription>Tool Lean paling relevan untuk konteks masalah Anda.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="rounded-xl bg-white ring-1 ring-amber-200 px-4 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-600">Recommended Tool</p>
+          <p className="font-display text-xl font-bold text-slate-800 mt-1">{rec.tool}</p>
+        </div>
+        <p className="text-sm leading-relaxed text-slate-700">{rec.rationale}</p>
+        {roadmap.pokaYoke?.length > 0 && (
+          <div className="pt-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+              Contoh Implementasi
+            </p>
+            <ul className="space-y-1.5">
+              {roadmap.pokaYoke.map((p, i) => (
+                <li key={i} className="flex gap-2 text-sm text-slate-700">
+                  <CheckCircle2 className="size-4 mt-0.5 shrink-0 text-amber-500" />
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------- Control phase: Control Plan + Reaction Plan ---------- */
+
+const controlPlanByDomain: Record<
+  Roadmap["domain"],
+  { item: string; frequency: string; owner: string }[]
+> = {
+  food: [
+    { item: "Kalibrasi sensor suhu mesin penggorengan", frequency: "Harian (awal shift)", owner: "Maintenance Lead" },
+    { item: "Audit kepatuhan SOP operator produksi", frequency: "Mingguan", owner: "Production Supervisor" },
+    { item: "Update p-Chart defect rate per batch", frequency: "Per batch", owner: "QA Engineer" },
+    { item: "Review kinerja supplier bahan baku", frequency: "Bulanan", owner: "Procurement / QA" },
+  ],
+  defect: [
+    { item: "Verifikasi alat ukur kritis (gauge R&R)", frequency: "Harian", owner: "Quality Engineer" },
+    { item: "Inspeksi in-process di titik kontrol", frequency: "Setiap sub-grup", owner: "Line Leader" },
+    { item: "Update Control Chart parameter proses", frequency: "Per shift", owner: "Process Engineer" },
+    { item: "Audit sertifikasi & kompetensi operator", frequency: "Bulanan", owner: "Training Coordinator" },
+  ],
+  delay: [
+    { item: "Daily huddle & visual management board", frequency: "Harian", owner: "Shift Supervisor" },
+    { item: "Monitoring takt time & WIP per stasiun", frequency: "Per shift", owner: "Operations Manager" },
+    { item: "Update X̄-R Chart lead time", frequency: "Mingguan", owner: "CI Lead" },
+    { item: "Review layout & line balancing", frequency: "Bulanan", owner: "Industrial Engineer" },
+  ],
+  service: [
+    { item: "Monitoring SLA & response time real-time", frequency: "Harian", owner: "CS Team Lead" },
+    { item: "Kalibrasi skrip & knowledge base", frequency: "Mingguan", owner: "Knowledge Manager" },
+    { item: "Update u-Chart jumlah keluhan", frequency: "Mingguan", owner: "Service Quality Analyst" },
+    { item: "Audit kepatuhan agen CS", frequency: "Bulanan", owner: "QA Manager" },
+  ],
+  generic: [
+    { item: "Verifikasi checklist proses di titik kritis", frequency: "Harian", owner: "Process Owner" },
+    { item: "Monitoring metrik kunci dashboard", frequency: "Mingguan", owner: "Tech Lead" },
+    { item: "Review log error & anomali", frequency: "Mingguan", owner: "On-call Engineer" },
+    { item: "Retrospective & continuous improvement", frequency: "Bulanan", owner: "Project Manager" },
+  ],
+};
+
+function ControlPlanCard({ roadmap }: { roadmap: Roadmap }) {
+  const items = controlPlanByDomain[roadmap.domain];
+  return (
+    <Card className="border border-border shadow-sm lg:col-span-2">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ShieldCheck className="size-5 text-primary" />
+          Control Plan / SOP Checklist
+        </CardTitle>
+        <CardDescription>
+          Aktivitas rutin untuk menjaga hasil perbaikan tetap stabil dari waktu ke waktu.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-lg border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                <TableHead className="px-3 w-10 text-xs font-semibold uppercase tracking-wider text-slate-600">✓</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Control Activity</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Frequency</TableHead>
+                <TableHead className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-600">Owner</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((it, i) => (
+                <TableRow key={i}>
+                  <TableCell className="px-3 py-2.5 align-top">
+                    <span className="inline-flex h-4 w-4 items-center justify-center rounded border border-slate-300 bg-white" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-sm font-medium text-slate-800 align-top">{it.item}</TableCell>
+                  <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                      {it.frequency}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5 text-sm text-slate-600 align-top">{it.owner}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ReactionPlanCard({ roadmap }: { roadmap: Roadmap }) {
+  const steps = [
+    "STOP — Hentikan proses pada titik abnormal & isolasi output yang dicurigai.",
+    "ALERT — Notifikasi supervisor / process owner sesuai matriks eskalasi.",
+    "CONTAIN — Karantina output, identifikasi unit terdampak (containment action).",
+    "INVESTIGATE — Jalankan 5 Whys cepat untuk menemukan penyebab spesifik.",
+    "CORRECT — Terapkan corrective action dan verifikasi sebelum proses dilanjutkan.",
+    "DOCUMENT — Catat kejadian, root cause, & tindakan pada log OCAP untuk review.",
+  ];
+  void roadmap;
+  return (
+    <Card className="border border-border shadow-sm bg-gradient-to-br from-rose-50/60 to-white">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <AlertOctagon className="size-5 text-rose-500" />
+          Reaction Plan (OCAP)
+        </CardTitle>
+        <CardDescription>
+          Out-of-Control Action Plan — langkah yang harus dijalankan saat proses keluar batas kontrol.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ol className="space-y-2.5">
+          {steps.map((s, i) => (
+            <li key={i} className="flex gap-3">
+              <div className="shrink-0 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold ring-1 ring-rose-200">
+                {i + 1}
+              </div>
+              <p className="text-sm leading-relaxed text-slate-700">{s}</p>
+            </li>
+          ))}
+        </ol>
+      </CardContent>
+    </Card>
   );
 }
