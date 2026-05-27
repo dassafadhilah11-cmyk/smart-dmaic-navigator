@@ -71,6 +71,16 @@ type Roadmap = {
   goalPct: number;
   timelineWeeks: number;
   ctqs: string[];
+  metricNouns: string[];
+  fiveWhys: string[];
+  fishbone: {
+    manpower: string[];
+    machine: string[];
+    method: string[];
+    material: string[];
+    measurement: string[];
+    motherNature: string[];
+  };
   qualitative: { name: string; desc: string }[];
   quantitative: { name: string; desc: string }[];
   actions: { failure: string; solution: string; method: string }[];
