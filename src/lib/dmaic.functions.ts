@@ -43,6 +43,13 @@ You MUST emit a SIPOC where every column is causally chained, not a random list:
   5. "customers" (exactly 4): each customer MUST be the party that RECEIVES the corresponding outputs[i]. customers[i] ← outputs[i]. Never list a customer who does not receive a listed output.
 All five columns must stay strictly inside the detected industry (manufacturing vs service vs digital — never mix).
 
+METRIC NOUNS (for Data Collection Plan):
+For each CTQ question you emit, also emit a SHORT measurable parameter noun (2–4 words, no question marks, no verbs like "Berapa/Bagaimana"). Examples: "Kekentalan Lem", "Suhu Ruangan", "Cycle Time Packing", "Defect Rate per Batch", "Response Time CS". Use Bahasa Indonesia. Provide exactly 4 nouns, aligned by index with ctqs.
+
+ROOT CAUSE ANALYSIS (5 Whys + Fishbone 6M):
+- "fiveWhys": exactly 5 strings forming a logical causal chain. Each string starts with "Why N: <pertanyaan>" followed by " — <jawaban singkat>" so the chain drills from the visible symptom down to a systemic root cause. Tailor strictly to the detected industry and the user's specific problem.
+- "fishbone": object with EXACTLY these 6 keys: manpower, machine, method, material, measurement, motherNature. Each value is an array of 2–3 concrete potential causes (short noun phrases, Bahasa Indonesia) for the problem, industry-specific. "motherNature" = environment/lingkungan (suhu, kelembapan, kebisingan, jam sibuk, dsb).
+
 OUTPUT: Call the tool "emit_roadmap" exactly once with a fully populated payload. Every list must have the required number of items. Be specific, not generic.`;
 
 const roadmapTool = {
@@ -58,6 +65,22 @@ const roadmapTool = {
         goalPct: { type: "integer", minimum: 30, maximum: 70, description: "Realistic reduction target % varied by severity. AVOID always 50." },
         timelineWeeks: { type: "integer", description: "Always 12." },
         ctqs: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 Critical-to-Quality probing questions, industry-specific, in Bahasa Indonesia." },
+        metricNouns: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 short measurable parameter nouns (2–4 words) aligned by index with ctqs. No question marks." },
+        fiveWhys: { type: "array", minItems: 5, maxItems: 5, items: { type: "string" }, description: "5 Whys chain. Each item: 'Why N: <pertanyaan> — <jawaban>'." },
+        fishbone: {
+          type: "object",
+          description: "Fishbone 6M categories with 2–3 potential causes each.",
+          properties: {
+            manpower:      { type: "array", minItems: 2, maxItems: 3, items: { type: "string" } },
+            machine:       { type: "array", minItems: 2, maxItems: 3, items: { type: "string" } },
+            method:        { type: "array", minItems: 2, maxItems: 3, items: { type: "string" } },
+            material:      { type: "array", minItems: 2, maxItems: 3, items: { type: "string" } },
+            measurement:   { type: "array", minItems: 2, maxItems: 3, items: { type: "string" } },
+            motherNature:  { type: "array", minItems: 2, maxItems: 3, items: { type: "string" } },
+          },
+          required: ["manpower", "machine", "method", "material", "measurement", "motherNature"],
+          additionalProperties: false,
+        },
         actions: {
           type: "array", minItems: 3, maxItems: 4,
           items: {
@@ -88,7 +111,7 @@ const roadmapTool = {
           additionalProperties: false,
         },
       },
-      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
+      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "fiveWhys", "fishbone", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
     },
   },
 };
