@@ -71,6 +71,16 @@ type Roadmap = {
   goalPct: number;
   timelineWeeks: number;
   ctqs: string[];
+  metricNouns: string[];
+  fiveWhys: string[];
+  fishbone: {
+    manpower: string[];
+    machine: string[];
+    method: string[];
+    material: string[];
+    measurement: string[];
+    motherNature: string[];
+  };
   qualitative: { name: string; desc: string }[];
   quantitative: { name: string; desc: string }[];
   actions: { failure: string; solution: string; method: string }[];
@@ -272,12 +282,73 @@ function buildRoadmap(problem: string): Roadmap {
   };
 
   const b = base[domain];
+  const ctqs = b.ctqs!;
+  const metricNouns = ctqs.map((q) =>
+    q
+      .replace(/^(Berapa|Bagaimana|Apa|Kapan|Siapa|Channel)\s+/i, "")
+      .replace(/\?$/, "")
+      .split(/\s+/)
+      .slice(0, 4)
+      .join(" ")
+      .replace(/^./, (c) => c.toUpperCase()),
+  );
+  const fishboneByDomain: Record<Roadmap["domain"], Roadmap["fishbone"]> = {
+    food: {
+      manpower: ["Operator kurang pelatihan", "Kelelahan shift malam"],
+      machine: ["Kalibrasi suhu tidak stabil", "Timer penggorengan aus"],
+      method: ["SOP belum standar antar shift", "Setup awal tidak konsisten"],
+      material: ["Variasi grade singkong", "Mutu minyak menurun"],
+      measurement: ["Sensor suhu tidak terkalibrasi", "Sampling QC terlalu jarang"],
+      motherNature: ["Kelembapan ruang produksi tinggi", "Fluktuasi suhu lingkungan"],
+    },
+    defect: {
+      manpower: ["Kompetensi operator beragam", "Handover shift tidak rapi"],
+      machine: ["Mesin lama, drift parameter", "Tooling aus"],
+      method: ["SOP tidak visual", "Inspeksi end-of-line saja"],
+      material: ["Raw material variatif", "Lot supplier campur"],
+      measurement: ["Alat ukur tidak diverifikasi", "Definisi defect ambigu"],
+      motherNature: ["Debu di area kerja", "Pencahayaan kurang"],
+    },
+    delay: {
+      manpower: ["Beban kerja tidak seimbang", "Skill mix tidak merata"],
+      machine: ["Sistem antrian lambat", "Downtime peralatan"],
+      method: ["Rute proses berputar", "Tidak ada prioritisasi order"],
+      material: ["WIP menumpuk", "Komponen telat datang"],
+      measurement: ["Cycle time tidak dipantau", "KPI per stasiun tidak ada"],
+      motherNature: ["Jam sibuk berimpit", "Layout sempit"],
+    },
+    service: {
+      manpower: ["Skrip agen tidak konsisten", "Turnover CS tinggi"],
+      machine: ["Sistem CRM lambat", "Telepon sering drop"],
+      method: ["Eskalasi tidak jelas", "Routing tiket manual"],
+      material: ["Knowledge base usang", "Template balasan minim"],
+      measurement: ["SLA tidak dipantau real-time", "CSAT jarang diukur"],
+      motherNature: ["Lonjakan trafik jam sibuk", "Gangguan jaringan eksternal"],
+    },
+    generic: {
+      manpower: ["Akuntabilitas peran tidak jelas", "Pelatihan kurang"],
+      machine: ["Sistem legacy", "Integrasi rapuh"],
+      method: ["Proses belum terdokumentasi", "Banyak workaround manual"],
+      material: ["Data input tidak bersih", "Dependency eksternal"],
+      measurement: ["Metrik tidak terdefinisi", "Logging minim"],
+      motherNature: ["Beban puncak tak terduga", "Perubahan regulasi"],
+    },
+  };
   return {
     problem: problem.trim(),
     domain,
     goalPct: 50,
     timelineWeeks: 12,
-    ctqs: b.ctqs!,
+    ctqs,
+    metricNouns,
+    fiveWhys: [
+      "Why 1: Mengapa masalah ini muncul? — Karena output proses tidak konsisten terhadap standar.",
+      "Why 2: Mengapa output tidak konsisten? — Karena parameter kunci proses bervariasi antar shift.",
+      "Why 3: Mengapa parameter bervariasi? — Karena SOP tidak dijalankan secara seragam.",
+      "Why 4: Mengapa SOP tidak seragam? — Karena pelatihan dan kontrol visual belum memadai.",
+      "Why 5: Mengapa kontrol belum memadai? — Karena sistem monitoring & akuntabilitas belum dirancang formal (root cause).",
+    ],
+    fishbone: fishboneByDomain[domain],
     qualitative: [
       { name: "Fishbone Diagram (5M+1E)", desc: "Telusuri penyebab dari Man, Machine, Method, Material, Measurement, Environment." },
       { name: "5 Whys", desc: "Tanyakan 'mengapa' berulang hingga akar masalah ditemukan." },
@@ -455,7 +526,14 @@ export function DmaicCompanion() {
           </TabsContent>
 
           <TabsContent value="analyze" className="mt-6 animate-in fade-in-50 duration-300">
-            <EmptyPhasePlaceholder label="Fase Analyze akan menampilkan Fishbone, 5 Whys, dan verifikasi akar masalah." />
+            {roadmap ? (
+              <div className="grid gap-5 lg:grid-cols-2">
+                <FiveWhysCard roadmap={roadmap} />
+                <FishboneCard roadmap={roadmap} />
+              </div>
+            ) : (
+              <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan 5 Whys & Fishbone 6M." />
+            )}
           </TabsContent>
           <TabsContent value="improve" className="mt-6 animate-in fade-in-50 duration-300">
             <EmptyPhasePlaceholder label="Fase Improve akan menampilkan rekomendasi solusi, FMEA, dan rencana pilot." />
@@ -482,7 +560,14 @@ function EmptyPhasePlaceholder({ label }: { label: string }) {
 function DataCollectionPlanCard({ roadmap }: { roadmap: Roadmap | null }) {
   const rows = roadmap
     ? roadmap.ctqs.map((ctq, i) => ({
-        metric: ctq.replace(/^Berapa\s+/i, "").replace(/\?$/, ""),
+        metric:
+          roadmap.metricNouns?.[i]?.trim() ||
+          ctq
+            .replace(/^(Berapa|Bagaimana|Apa|Kapan|Siapa|Channel)\s+/i, "")
+            .replace(/\?$/, "")
+            .split(/\s+/)
+            .slice(0, 4)
+            .join(" "),
         dataType: i % 2 === 0 ? "Continuous" : "Discrete / Attribute",
         tool:
           roadmap.domain === "food" || roadmap.domain === "defect"
@@ -697,6 +782,99 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 className="text-sm font-semibold uppercase tracking-wide text-primary mb-2">{title}</h3>
       {children}
     </div>
+  );
+}
+
+/* ---------- Analyze phase: 5 Whys + Fishbone ---------- */
+
+function FiveWhysCard({ roadmap }: { roadmap: Roadmap }) {
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Search className="size-5 text-primary" />
+          5 Whys Analysis
+        </CardTitle>
+        <CardDescription>Rantai kausal dari gejala ke akar masalah sistemik.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ol className="space-y-3">
+          {roadmap.fiveWhys.map((w, i) => {
+            const isRoot = i === roadmap.fiveWhys.length - 1;
+            return (
+              <li key={i} className="flex gap-3">
+                <div
+                  className={`shrink-0 mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ring-1 ${
+                    isRoot
+                      ? "bg-rose-50 text-rose-600 ring-rose-200"
+                      : "bg-indigo-50 text-indigo-600 ring-indigo-200"
+                  }`}
+                >
+                  {i + 1}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm leading-relaxed text-slate-700">{w}</p>
+                  {isRoot && (
+                    <Badge variant="secondary" className="mt-1 bg-rose-50 text-rose-700 ring-1 ring-rose-200">
+                      Root Cause
+                    </Badge>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </CardContent>
+    </Card>
+  );
+}
+
+const fishboneCategories = [
+  { key: "manpower",     label: "Manpower",       tone: "bg-rose-50 text-rose-700 ring-rose-200" },
+  { key: "machine",      label: "Machine",        tone: "bg-amber-50 text-amber-700 ring-amber-200" },
+  { key: "method",       label: "Method",         tone: "bg-indigo-50 text-indigo-700 ring-indigo-200" },
+  { key: "material",     label: "Material",       tone: "bg-sky-50 text-sky-700 ring-sky-200" },
+  { key: "measurement",  label: "Measurement",    tone: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
+  { key: "motherNature", label: "Mother Nature",  tone: "bg-violet-50 text-violet-700 ring-violet-200" },
+] as const;
+
+function FishboneCard({ roadmap }: { roadmap: Roadmap }) {
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <AlertOctagon className="size-5 text-primary" />
+          Fishbone Diagram (6M)
+        </CardTitle>
+        <CardDescription>
+          Kategorisasi potensi penyebab: Manpower, Machine, Method, Material, Measurement, Mother Nature.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {fishboneCategories.map((cat) => (
+            <div
+              key={cat.key}
+              className="rounded-xl border border-slate-200 bg-slate-50/50 p-3"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ring-1 ${cat.tone}`}>
+                  {cat.label}
+                </span>
+              </div>
+              <ul className="space-y-1.5">
+                {roadmap.fishbone[cat.key].map((cause, i) => (
+                  <li key={i} className="flex gap-2 text-sm text-slate-700 leading-snug">
+                    <span className="text-slate-400 mt-1">•</span>
+                    <span>{cause}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
