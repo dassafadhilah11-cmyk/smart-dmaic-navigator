@@ -526,7 +526,14 @@ export function DmaicCompanion() {
           </TabsContent>
 
           <TabsContent value="analyze" className="mt-6 animate-in fade-in-50 duration-300">
-            <EmptyPhasePlaceholder label="Fase Analyze akan menampilkan Fishbone, 5 Whys, dan verifikasi akar masalah." />
+            {roadmap ? (
+              <div className="grid gap-5 lg:grid-cols-2">
+                <FiveWhysCard roadmap={roadmap} />
+                <FishboneCard roadmap={roadmap} />
+              </div>
+            ) : (
+              <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan 5 Whys & Fishbone 6M." />
+            )}
           </TabsContent>
           <TabsContent value="improve" className="mt-6 animate-in fade-in-50 duration-300">
             <EmptyPhasePlaceholder label="Fase Improve akan menampilkan rekomendasi solusi, FMEA, dan rencana pilot." />
