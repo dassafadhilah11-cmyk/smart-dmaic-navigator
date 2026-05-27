@@ -553,7 +553,14 @@ function EmptyPhasePlaceholder({ label }: { label: string }) {
 function DataCollectionPlanCard({ roadmap }: { roadmap: Roadmap | null }) {
   const rows = roadmap
     ? roadmap.ctqs.map((ctq, i) => ({
-        metric: ctq.replace(/^Berapa\s+/i, "").replace(/\?$/, ""),
+        metric:
+          roadmap.metricNouns?.[i]?.trim() ||
+          ctq
+            .replace(/^(Berapa|Bagaimana|Apa|Kapan|Siapa|Channel)\s+/i, "")
+            .replace(/\?$/, "")
+            .split(/\s+/)
+            .slice(0, 4)
+            .join(" "),
         dataType: i % 2 === 0 ? "Continuous" : "Discrete / Attribute",
         tool:
           roadmap.domain === "food" || roadmap.domain === "defect"
