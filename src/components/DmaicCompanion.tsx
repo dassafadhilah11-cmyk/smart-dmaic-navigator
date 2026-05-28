@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Printer,
+  Copy,
+  Check,
   Sparkles,
   Target,
   BarChart3,
@@ -480,22 +482,24 @@ export function DmaicCompanion() {
                 <RotateCcw className="mr-2 size-4" />
                 Reset Project
               </Button>
+              {roadmap && (
+                <Button
+                  onClick={() => window.print()}
+                  variant="ghost"
+                  size="lg"
+                  className="w-full sm:w-auto sm:ml-auto"
+                >
+                  <Printer className="mr-2 size-4" />
+                  Cetak / Simpan jadi PDF
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {roadmap && (
-          <div ref={reportRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-center pt-4 print:hidden">
-              <Button onClick={() => window.print()} variant="outline" size="lg">
-                <Printer className="mr-2 size-4" />
-                Cetak / Simpan jadi PDF
-              </Button>
-            </div>
-          </div>
-        )}
 
-        <Tabs defaultValue="define" className="w-full">
+        <div ref={reportRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Tabs defaultValue="define" className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto bg-card border border-border p-1">
             <TabsTrigger value="define" className="gap-1.5"><Target className="size-4" />Define</TabsTrigger>
             <TabsTrigger value="measure" className="gap-1.5"><BarChart3 className="size-4" />Measure</TabsTrigger>
@@ -555,7 +559,8 @@ export function DmaicCompanion() {
               <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan Control Plan dan Reaction Plan (OCAP)." />
             )}
           </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </main>
     </div>
   );
@@ -687,28 +692,28 @@ function SigmaCalculatorCard() {
       <CardContent className="space-y-3">
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-slate-600">Total Units Inspected</label>
-          <Input type="number" min="0" value={units} onChange={(e) => setUnits(e.target.value)} />
+          <Input type="number" min="1" step="1" value={units} onChange={(e) => setUnits(e.target.value.replace(/\D/g, ""))} />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-slate-600">Defect Opportunities per Unit</label>
-          <Input type="number" min="0" value={opps} onChange={(e) => setOpps(e.target.value)} />
+          <Input type="number" min="1" step="1" value={opps} onChange={(e) => setOpps(e.target.value.replace(/\D/g, ""))} />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-slate-600">Total Defects Found</label>
-          <Input type="number" min="0" value={defects} onChange={(e) => setDefects(e.target.value)} />
+          <Input type="number" min="0" step="1" value={defects} onChange={(e) => setDefects(e.target.value.replace(/\D/g, ""))} />
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">DPMO</p>
             <p className="font-display text-2xl font-bold text-slate-800 mt-0.5">
-              {dpmo === null ? "—" : dpmo.toLocaleString()}
+              {dpmo === null ? "Awaiting inputs..." : dpmo.toLocaleString()}
             </p>
           </div>
           <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Sigma Level</p>
             <p className="font-display text-2xl font-bold text-slate-800 mt-0.5">
-              {sigma === null ? "—" : `${sigma}σ`}
+              {sigma === null ? "Awaiting inputs..." : `${sigma}σ`}
             </p>
           </div>
         </div>
@@ -799,15 +804,42 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Gagal menyalin teks.");
+    }
+  };
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-8 px-2 text-muted-foreground hover:text-foreground"
+      onClick={handleCopy}
+    >
+      {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
+      <span className="sr-only">Copy text</span>
+    </Button>
+  );
+}
+
 /* ---------- Analyze phase: 5 Whys + Fishbone ---------- */
 
 function FiveWhysCard({ roadmap }: { roadmap: Roadmap }) {
   return (
     <Card className="border border-border shadow-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Search className="size-5 text-primary" />
-          5 Whys Analysis
+        <CardTitle className="flex items-center justify-between gap-2 text-base">
+          <span className="flex items-center gap-2">
+            <Search className="size-5 text-primary" />
+            5 Whys Analysis
+          </span>
+          <CopyButton text={roadmap.fiveWhys.join("\n")} />
         </CardTitle>
         <CardDescription>Rantai kausal dari gejala ke akar masalah sistemik.</CardDescription>
       </CardHeader>
@@ -1494,9 +1526,12 @@ function ReactionPlanCard({ roadmap }: { roadmap: Roadmap }) {
   return (
     <Card className="border border-border shadow-sm bg-gradient-to-br from-rose-50/60 to-white">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <AlertOctagon className="size-5 text-rose-500" />
-          Reaction Plan (OCAP)
+        <CardTitle className="flex items-center justify-between gap-2 text-base">
+          <span className="flex items-center gap-2">
+            <AlertOctagon className="size-5 text-rose-500" />
+            Reaction Plan (OCAP)
+          </span>
+          <CopyButton text={steps.join("\n")} />
         </CardTitle>
         <CardDescription>
           Out-of-Control Action Plan — langkah yang harus dijalankan saat proses keluar batas kontrol.
