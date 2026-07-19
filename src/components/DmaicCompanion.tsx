@@ -657,10 +657,34 @@ function DataCollectionPlanCard({ roadmap }: { roadmap: Roadmap | null }) {
   );
 }
 
-function SigmaCalculatorCard() {
-  const [units, setUnits] = useState<string>("1000");
-  const [opps, setOpps] = useState<string>("1");
-  const [defects, setDefects] = useState<string>("50");
+function SigmaCalculatorCard({ roadmap }: { roadmap: Roadmap | null }) {
+  const prefill = useMemo(() => {
+    const b = roadmap?.baseline;
+    const oppsFromCtq = roadmap?.metricNouns?.length || roadmap?.ctqs?.length || 1;
+    return {
+      units: b?.units && b.units > 0 ? String(b.units) : "1000",
+      opps: b?.opportunitiesPerUnit && b.opportunitiesPerUnit > 0
+        ? String(b.opportunitiesPerUnit)
+        : String(oppsFromCtq),
+      defects: typeof b?.defects === "number" && b.defects >= 0 ? String(b.defects) : "50",
+    };
+  }, [roadmap]);
+
+  const [units, setUnits] = useState<string>(prefill.units);
+  const [opps, setOpps] = useState<string>(prefill.opps);
+  const [defects, setDefects] = useState<string>(prefill.defects);
+  const lastPrefillKey = useRef<string>("");
+
+  useEffect(() => {
+    // Re-prefill whenever a new roadmap is generated (identified by problem+domain).
+    const key = roadmap ? `${roadmap.problem}::${roadmap.domain}` : "";
+    if (key && key !== lastPrefillKey.current) {
+      lastPrefillKey.current = key;
+      setUnits(prefill.units);
+      setOpps(prefill.opps);
+      setDefects(prefill.defects);
+    }
+  }, [roadmap, prefill]);
 
   const { dpmo, sigma, yieldPct } = useMemo(() => {
     const u = parseFloat(units);
