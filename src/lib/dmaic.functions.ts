@@ -46,6 +46,13 @@ All five columns must stay strictly inside the detected industry (manufacturing 
 METRIC NOUNS (for Data Collection Plan):
 For each CTQ question you emit, also emit a SHORT measurable parameter noun (2–4 words, no question marks, no verbs like "Berapa/Bagaimana"). Examples: "Kekentalan Lem", "Suhu Ruangan", "Cycle Time Packing", "Defect Rate per Batch", "Response Time CS". Use Bahasa Indonesia. Provide exactly 4 nouns, aligned by index with ctqs.
 
+BASELINE MEASUREMENT (for DPMO Calculator prefill):
+Emit "baseline" as an object with THREE integers:
+  - "units": total units / transactions / samples inspected in the baseline period. If the user states an explicit count (e.g. "1500 unit", "2000 transaksi"), USE THAT NUMBER. Otherwise infer a realistic baseline sample size for a 12-week Six Sigma project (typical range 500–5000 depending on process volume).
+  - "opportunitiesPerUnit": number of critical-to-quality parameters (defect opportunities) per unit. MUST equal the number of metricNouns you emit (i.e. 4), unless the problem domain clearly implies a different number of independent defect opportunities per unit — in that case pick an integer 1–10.
+  - "defects": total defects / errors / late events / complaints observed in the baseline. If the user states an explicit defect count or defect rate (e.g. "90 cacat", "15% reject"), derive from that (rate × units, rounded). Otherwise pick a realistic integer consistent with the severity described (must be < units × opportunitiesPerUnit).
+These three values will pre-fill the DPMO calculator; they must be internally consistent (defects ≤ units × opportunitiesPerUnit) and reflect the user's stated numbers when present.
+
 ROOT CAUSE ANALYSIS (5 Whys + Fishbone 6M):
 - "fiveWhys": exactly 5 strings forming a logical causal chain. Each string starts with "Why N: <pertanyaan>" followed by " — <jawaban singkat>" so the chain drills from the visible symptom down to a systemic root cause. Tailor strictly to the detected industry and the user's specific problem.
 - "fishbone": object with EXACTLY these 6 keys: manpower, machine, method, material, measurement, motherNature. Each value is an array of 2–3 concrete potential causes (short noun phrases, Bahasa Indonesia) for the problem, industry-specific. "motherNature" = environment/lingkungan (suhu, kelembapan, kebisingan, jam sibuk, dsb).
@@ -66,6 +73,17 @@ const roadmapTool = {
         timelineWeeks: { type: "integer", description: "Always 12." },
         ctqs: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 Critical-to-Quality probing questions, industry-specific, in Bahasa Indonesia." },
         metricNouns: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 short measurable parameter nouns (2–4 words) aligned by index with ctqs. No question marks." },
+        baseline: {
+          type: "object",
+          description: "Baseline measurement values used to pre-fill the DPMO calculator. Extract explicit numbers from the user's problem text when present.",
+          properties: {
+            units: { type: "integer", minimum: 1, description: "Total units inspected in baseline period." },
+            opportunitiesPerUnit: { type: "integer", minimum: 1, maximum: 20, description: "Critical defect opportunities per unit. Typically equals number of metricNouns." },
+            defects: { type: "integer", minimum: 0, description: "Total defects observed. Must be <= units * opportunitiesPerUnit." },
+          },
+          required: ["units", "opportunitiesPerUnit", "defects"],
+          additionalProperties: false,
+        },
         fiveWhys: { type: "array", minItems: 5, maxItems: 5, items: { type: "string" }, description: "5 Whys chain. Each item: 'Why N: <pertanyaan> — <jawaban>'." },
         fishbone: {
           type: "object",
@@ -111,7 +129,7 @@ const roadmapTool = {
           additionalProperties: false,
         },
       },
-      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "fiveWhys", "fishbone", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
+      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "baseline", "fiveWhys", "fishbone", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
     },
   },
 };
