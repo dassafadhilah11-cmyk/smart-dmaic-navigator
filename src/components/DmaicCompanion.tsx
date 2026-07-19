@@ -97,6 +97,11 @@ type Roadmap = {
     outputs: string[];
     customers: string[];
   };
+  baseline?: {
+    units?: number;
+    opportunitiesPerUnit?: number;
+    defects?: number;
+  };
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
