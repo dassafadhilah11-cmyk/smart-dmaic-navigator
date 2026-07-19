@@ -529,7 +529,7 @@ export function DmaicCompanion() {
           <TabsContent value="measure" className="mt-6 animate-in fade-in-50 duration-300">
             <div className="grid gap-5 md:grid-cols-3">
               <DataCollectionPlanCard roadmap={roadmap} />
-              <SigmaCalculatorCard />
+              <SigmaCalculatorCard roadmap={roadmap} />
               <ControlChartCard roadmap={roadmap} />
             </div>
           </TabsContent>
