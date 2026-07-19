@@ -387,6 +387,34 @@ export function DmaicCompanion() {
   const reportRef = useRef<HTMLDivElement>(null);
   const callGenerate = useServerFn(generateRoadmap);
 
+  const STORAGE_KEY = "smart-dmaic:state:v1";
+  const hydratedRef = useRef(false);
+
+  // Restore persisted state on mount.
+  useEffect(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
+      if (raw) {
+        const saved = JSON.parse(raw) as { input?: string; roadmap?: Roadmap | null };
+        if (typeof saved.input === "string") setInput(saved.input);
+        if (saved.roadmap) setRoadmap(saved.roadmap);
+      }
+    } catch {
+      /* ignore corrupt storage */
+    }
+    hydratedRef.current = true;
+  }, []);
+
+  // Persist whenever input or roadmap changes (after hydration).
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ input, roadmap }));
+    } catch {
+      /* quota or unavailable */
+    }
+  }, [input, roadmap]);
+
   const handleGenerate = async () => {
     if (!input.trim()) return;
     setLoading(true);
@@ -418,6 +446,11 @@ export function DmaicCompanion() {
     setInput("");
     setRoadmap(null);
     setLoading(false);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
