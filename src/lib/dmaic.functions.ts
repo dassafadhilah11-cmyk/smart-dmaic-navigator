@@ -47,11 +47,16 @@ METRIC NOUNS (for Data Collection Plan):
 For each CTQ question you emit, also emit a SHORT measurable parameter noun (2–4 words, no question marks, no verbs like "Berapa/Bagaimana"). Examples: "Kekentalan Lem", "Suhu Ruangan", "Cycle Time Packing", "Defect Rate per Batch", "Response Time CS". Use Bahasa Indonesia. Provide exactly 4 nouns, aligned by index with ctqs.
 
 BASELINE MEASUREMENT (for DPMO Calculator prefill):
-Emit "baseline" as an object with THREE integers:
+QUANTITATIVE DATA CHECK (CRITICAL — do NOT invent numbers):
+First, inspect the user's problem text and determine whether it contains EXPLICIT quantitative signals sufficient for DPMO analysis. Sufficient means at least TWO of these are explicitly stated (as numbers, percentages, or clearly-countable phrases): (a) a unit/transaction/sample count (e.g. "1500 unit", "2000 transaksi"), (b) a defect/error/late count OR an explicit defect rate/percentage (e.g. "90 cacat", "15% reject", "20% keterlambatan"), (c) a clear number of critical parameters / defect opportunities per unit.
+  - If sufficient → set "hasQuantitativeData": true and emit a "baseline" object populated from the user's stated numbers.
+  - If NOT sufficient (problem is purely qualitative, describes symptoms without countable magnitudes) → set "hasQuantitativeData": false and OMIT the "baseline" field entirely. Do NOT invent numbers.
+
+When emitted, "baseline" is an object with THREE integers:
   - "units": total units / transactions / samples inspected in the baseline period. If the user states an explicit count (e.g. "1500 unit", "2000 transaksi"), USE THAT NUMBER. Otherwise infer a realistic baseline sample size for a 12-week Six Sigma project (typical range 500–5000 depending on process volume).
   - "opportunitiesPerUnit": number of critical-to-quality parameters (defect opportunities) per unit. MUST equal the number of metricNouns you emit (i.e. 4), unless the problem domain clearly implies a different number of independent defect opportunities per unit — in that case pick an integer 1–10.
   - "defects": total defects / errors / late events / complaints observed in the baseline. If the user states an explicit defect count or defect rate (e.g. "90 cacat", "15% reject"), derive from that (rate × units, rounded). Otherwise pick a realistic integer consistent with the severity described (must be < units × opportunitiesPerUnit).
-These three values will pre-fill the DPMO calculator; they must be internally consistent (defects ≤ units × opportunitiesPerUnit) and reflect the user's stated numbers when present.
+These three values will pre-fill the DPMO calculator; they must be internally consistent (defects ≤ units × opportunitiesPerUnit) and reflect the user's stated numbers when present. Only emit "baseline" when hasQuantitativeData is true.
 
 ROOT CAUSE ANALYSIS (5 Whys + Fishbone 6M):
 - "fiveWhys": exactly 5 strings forming a logical causal chain. Each string starts with "Why N: <pertanyaan>" followed by " — <jawaban singkat>" so the chain drills from the visible symptom down to a systemic root cause. Tailor strictly to the detected industry and the user's specific problem.
@@ -73,9 +78,10 @@ const roadmapTool = {
         timelineWeeks: { type: "integer", description: "Always 12." },
         ctqs: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 Critical-to-Quality probing questions, industry-specific, in Bahasa Indonesia." },
         metricNouns: { type: "array", minItems: 4, maxItems: 4, items: { type: "string" }, description: "4 short measurable parameter nouns (2–4 words) aligned by index with ctqs. No question marks." },
+        hasQuantitativeData: { type: "boolean", description: "True only if the user's problem text contains enough explicit numeric data (units, defects, opportunities/critical parameters) to support DPMO calculation. False if problem is purely qualitative — in that case OMIT baseline." },
         baseline: {
           type: "object",
-          description: "Baseline measurement values used to pre-fill the DPMO calculator. Extract explicit numbers from the user's problem text when present.",
+          description: "Baseline measurement values used to pre-fill the DPMO calculator. ONLY include when hasQuantitativeData is true. Extract explicit numbers from the user's problem text.",
           properties: {
             units: { type: "integer", minimum: 1, description: "Total units inspected in baseline period." },
             opportunitiesPerUnit: { type: "integer", minimum: 1, maximum: 20, description: "Critical defect opportunities per unit. Typically equals number of metricNouns." },
@@ -129,7 +135,7 @@ const roadmapTool = {
           additionalProperties: false,
         },
       },
-      required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "baseline", "fiveWhys", "fishbone", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
+        required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "hasQuantitativeData", "fiveWhys", "fishbone", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
     },
   },
 };
