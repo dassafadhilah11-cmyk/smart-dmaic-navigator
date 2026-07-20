@@ -102,6 +102,7 @@ type Roadmap = {
     opportunitiesPerUnit?: number;
     defects?: number;
   };
+  hasQuantitativeData?: boolean;
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
