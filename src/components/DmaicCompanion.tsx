@@ -1009,7 +1009,7 @@ function FishboneCard({ roadmap }: { roadmap: Roadmap }) {
   );
 }
 
-/* ---------- SIPOC Diagram ---------- */
+/* ---------- Pareto (Fishbone counts) ---------- */
 
 function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
   const data = useMemo(() => {
