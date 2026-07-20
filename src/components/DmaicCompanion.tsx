@@ -1011,6 +1011,78 @@ function FishboneCard({ roadmap }: { roadmap: Roadmap }) {
 
 /* ---------- SIPOC Diagram ---------- */
 
+function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
+  const data = useMemo(() => {
+    if (!roadmap?.hasQuantitativeData) return [];
+    const fb = roadmap?.fishbone;
+    if (!fb) return [];
+    const rows = fishboneCategories
+      .map((cat) => ({
+        category: cat.label,
+        causes: Array.isArray(fb[cat.key]) ? fb[cat.key].length : 0,
+      }))
+      .filter((r) => r.causes > 0)
+      .sort((a, b) => b.causes - a.causes);
+    const total = rows.reduce((s, r) => s + r.causes, 0);
+    if (total === 0) return [];
+    let running = 0;
+    return rows.map((r) => {
+      running += r.causes;
+      return { ...r, cumulative: Math.round((running / total) * 100) };
+    });
+  }, [roadmap]);
+
+  if (data.length === 0) return null;
+
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <BarChart3 className="size-5 text-primary" />
+          Pareto Analysis — Fishbone 6M
+        </CardTitle>
+        <CardDescription>
+          Distribusi jumlah penyebab per kategori 6M, diurut menurun dengan garis persentase kumulatif (aturan 80/20).
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer
+          config={{
+            causes: { label: "Jumlah Penyebab", color: "hsl(var(--primary))" },
+            cumulative: { label: "Kumulatif %", color: "hsl(var(--destructive))" },
+          }}
+          className="h-[320px] w-full"
+        >
+          <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} />
+            <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11 }} />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 11 }}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]} />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="cumulative"
+              stroke="var(--color-cumulative)"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
+          </ComposedChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------- SIPOC Diagram ---------- */
+
 const domainLabel: Record<Roadmap["domain"], string> = {
   food: "Manufacturing · F&B",
   defect: "Manufacturing",
