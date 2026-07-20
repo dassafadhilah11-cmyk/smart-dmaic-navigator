@@ -102,6 +102,7 @@ type Roadmap = {
     opportunitiesPerUnit?: number;
     defects?: number;
   };
+  hasQuantitativeData?: boolean;
 };
 
 function detectDomain(input: string): Roadmap["domain"] {
@@ -691,9 +692,13 @@ function DataCollectionPlanCard({ roadmap }: { roadmap: Roadmap | null }) {
 }
 
 function SigmaCalculatorCard({ roadmap }: { roadmap: Roadmap | null }) {
+  const hasQuant = roadmap ? roadmap.hasQuantitativeData !== false : true;
   const prefill = useMemo(() => {
     const b = roadmap?.baseline;
     const oppsFromCtq = roadmap?.metricNouns?.length || roadmap?.ctqs?.length || 1;
+    if (roadmap && roadmap.hasQuantitativeData === false) {
+      return { units: "", opps: "", defects: "" };
+    }
     return {
       units: b?.units && b.units > 0 ? String(b.units) : "1000",
       opps: b?.opportunitiesPerUnit && b.opportunitiesPerUnit > 0
@@ -752,6 +757,11 @@ function SigmaCalculatorCard({ roadmap }: { roadmap: Roadmap | null }) {
         <CardDescription>Hitung performa proses dari data inspeksi Anda.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
+        {roadmap && !hasQuant && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+            Data kuantitatif belum cukup untuk kalkulasi DPMO. Tambahkan angka unit, defect, dan parameter kritis di deskripsi masalah untuk analisis yang lebih akurat — atau isi manual di bawah.
+          </div>
+        )}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-slate-600">Total Units Inspected</label>
           <Input type="number" min="1" step="1" value={units} onChange={(e) => setUnits(e.target.value.replace(/\D/g, ""))} />
