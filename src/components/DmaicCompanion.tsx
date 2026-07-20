@@ -33,6 +33,16 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   Table,
   TableBody,
@@ -570,9 +580,12 @@ export function DmaicCompanion() {
 
           <TabsContent value="analyze" className="mt-6 animate-in fade-in-50 duration-300">
             {roadmap ? (
-              <div className="grid gap-5 lg:grid-cols-2">
-                <FiveWhysCard roadmap={roadmap} />
-                <FishboneCard roadmap={roadmap} />
+              <div className="space-y-5">
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <FiveWhysCard roadmap={roadmap} />
+                  <FishboneCard roadmap={roadmap} />
+                </div>
+                <ParetoFishboneCard roadmap={roadmap} />
               </div>
             ) : (
               <EmptyPhasePlaceholder label="Klik Generate untuk menampilkan 5 Whys & Fishbone 6M." />
