@@ -36,7 +36,6 @@ import { Input } from "@/components/ui/input";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import {
   Bar,
-  BarChart,
   CartesianGrid,
   ComposedChart,
   Line,
