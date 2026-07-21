@@ -38,6 +38,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  LabelList,
   Line,
   XAxis,
   YAxis,
@@ -1021,7 +1022,7 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
         causes: Array.isArray(fb[cat.key]) ? fb[cat.key].length : 0,
       }))
       .filter((r) => r.causes > 0)
-      .sort((a, b) => b.causes - a.causes);
+      .sort((a, b) => b.causes - a.causes || a.category.localeCompare(b.category));
     const total = rows.reduce((s, r) => s + r.causes, 0);
     if (total === 0) return [];
     let running = 0;
@@ -1064,7 +1065,9 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
               tick={{ fontSize: 11 }}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]} />
+            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]}>
+              <LabelList dataKey="causes" position="top" offset={10} fill="var(--foreground)" fontSize={11} />
+            </Bar>
             <Line
               yAxisId="right"
               type="monotone"

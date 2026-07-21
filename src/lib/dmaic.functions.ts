@@ -60,7 +60,7 @@ These three values will pre-fill the DPMO calculator; they must be internally co
 
 ROOT CAUSE ANALYSIS (5 Whys + Fishbone 6M):
 - "fiveWhys": exactly 5 strings forming a logical causal chain. Each string starts with "Why N: <pertanyaan>" followed by " — <jawaban singkat>" so the chain drills from the visible symptom down to a systemic root cause. Tailor strictly to the detected industry and the user's specific problem.
-- "fishbone": object with EXACTLY these 6 keys: manpower, machine, method, material, measurement, motherNature. Each value is an array of 2–3 concrete potential causes (short noun phrases, Bahasa Indonesia) for the problem, industry-specific. "motherNature" = environment/lingkungan (suhu, kelembapan, kebisingan, jam sibuk, dsb).
+- "fishbone": object with EXACTLY these 6 keys: manpower, machine, method, material, measurement, motherNature. Each value is an array of 2–3 concrete potential causes (short noun phrases, Bahasa Indonesia) for the problem, industry-specific. VARY the count per category based on realistic importance (e.g., one category may have 2 causes while another has 3); do NOT default to the same count for every category so the Pareto chart can rank them meaningfully. "motherNature" = environment/lingkungan (suhu, kelembapan, kebisingan, jam sibuk, dsb).
 
 OUTPUT: Call the tool "emit_roadmap" exactly once with a fully populated payload. Every list must have the required number of items. Be specific, not generic.`;
 
