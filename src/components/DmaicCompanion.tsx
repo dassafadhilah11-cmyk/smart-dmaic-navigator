@@ -1065,7 +1065,9 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
               tick={{ fontSize: 11 }}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]} />
+            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]}>
+              <LabelList dataKey="causes" position="top" offset={10} fill="var(--foreground)" fontSize={11} />
+            </Bar>
             <Line
               yAxisId="right"
               type="monotone"
