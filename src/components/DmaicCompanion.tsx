@@ -1047,8 +1047,8 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
       <CardContent>
         <ChartContainer
           config={{
-            causes: { label: "Jumlah Penyebab", color: "hsl(var(--primary))" },
-            cumulative: { label: "Kumulatif %", color: "hsl(var(--destructive))" },
+            causes: { label: "Jumlah Penyebab", color: "var(--chart-1)" },
+            cumulative: { label: "Kumulatif %", color: "var(--chart-2)" },
           }}
           className="h-[320px] w-full"
         >
