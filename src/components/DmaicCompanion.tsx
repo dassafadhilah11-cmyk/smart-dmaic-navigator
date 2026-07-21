@@ -38,6 +38,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  LabelList,
   Line,
   XAxis,
   YAxis,
