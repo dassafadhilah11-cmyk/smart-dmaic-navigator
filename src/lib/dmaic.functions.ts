@@ -62,6 +62,20 @@ ROOT CAUSE ANALYSIS (5 Whys + Fishbone 6M):
 - "fiveWhys": exactly 5 strings forming a logical causal chain. Each string starts with "Why N: <pertanyaan>" followed by " — <jawaban singkat>" so the chain drills from the visible symptom down to a systemic root cause. Tailor strictly to the detected industry and the user's specific problem.
 - "fishbone": object with EXACTLY these 6 keys: manpower, machine, method, material, measurement, motherNature. Each value is an array of 2–3 concrete potential causes (short noun phrases, Bahasa Indonesia) for the problem, industry-specific. VARY the count per category based on realistic importance (e.g., one category may have 2 causes while another has 3); do NOT default to the same count for every category so the Pareto chart can rank them meaningfully. "motherNature" = environment/lingkungan (suhu, kelembapan, kebisingan, jam sibuk, dsb).
 
+CONTROL CHART SELECTION (CRITICAL — do NOT default to p-Chart):
+Analyze the primary metric implied by the problem text and choose exactly ONE Statistical Process Control chart. Base the decision on the actual measurement type described (units of measurement, whether sample size is fixed or varying, defect count vs proportion defective, subgroup structure):
+  - "X̄-R Chart" → CONTINUOUS/variable data that can be measured on a scale (waktu, cycle time, lead time, suhu, berat, ketebalan, panjang, tekanan, viskositas, kadar, dsb.) AND subgroups of size 2–10 are natural (e.g., beberapa sampel per shift/batch/jam).
+  - "I-MR Chart" → CONTINUOUS data collected one observation at a time with NO natural subgroup (individual measurements per batch/hari).
+  - "p-Chart" → ATTRIBUTE data (defective vs not defective — pass/fail, on-time vs late, komplain ya/tidak) where SAMPLE SIZE VARIES between inspections (proporsi cacat, % keterlambatan, % komplain, sampel per hari berbeda).
+  - "np-Chart" → ATTRIBUTE data (defective vs not defective) where SAMPLE SIZE IS CONSTANT across inspections (mis. selalu 100 unit per batch/shift).
+  - "c-Chart" → COUNT of defects per unit (satu unit dapat memiliki banyak cacat/keluhan; area of opportunity KONSTAN — mis. jumlah cacat per meter kain, jumlah keluhan per hari dengan volume tetap).
+  - "u-Chart" → COUNT of defects per unit dengan area of opportunity VARIABEL (mis. defect per m² kain dengan ukuran gulungan berbeda; keluhan per 1000 transaksi dengan volume harian berbeda).
+Emit "controlChart" as an object with:
+  - "chart": salah satu string persis: "X̄-R Chart" | "I-MR Chart" | "p-Chart" | "np-Chart" | "c-Chart" | "u-Chart".
+  - "dataType": deskripsi singkat sifat data (mis. "Continuous · Cycle time", "Attribute · Proporsi cacat (n bervariasi)", "Attribute · Jumlah cacat per unit (opportunity konstan)").
+  - "rationale": 1–2 kalimat Bahasa Indonesia profesional yang MENYEBUT petunjuk spesifik dari deskripsi masalah user (mis. satuan pengukuran atau apakah ukuran sampel tetap/berubah) yang mendasari pemilihan chart. Jangan gunakan alasan generik yang bisa dipakai untuk semua chart.
+Do NOT default to p-Chart. If cues are ambiguous, pick the chart most consistent with the metricNouns you emitted.
+
 OUTPUT: Call the tool "emit_roadmap" exactly once with a fully populated payload. Every list must have the required number of items. Be specific, not generic.`;
 
 const roadmapTool = {
@@ -105,6 +119,17 @@ const roadmapTool = {
           required: ["manpower", "machine", "method", "material", "measurement", "motherNature"],
           additionalProperties: false,
         },
+        controlChart: {
+          type: "object",
+          description: "Recommended SPC control chart derived from the metric type implied by the problem text.",
+          properties: {
+            chart: { type: "string", enum: ["X̄-R Chart", "I-MR Chart", "p-Chart", "np-Chart", "c-Chart", "u-Chart"] },
+            dataType: { type: "string", description: "Short data-nature descriptor (continuous vs attribute, subgroup/sample-size behavior)." },
+            rationale: { type: "string", description: "1–2 sentence Bahasa Indonesia rationale citing specific cues from the user's problem text." },
+          },
+          required: ["chart", "dataType", "rationale"],
+          additionalProperties: false,
+        },
         actions: {
           type: "array", minItems: 3, maxItems: 4,
           items: {
@@ -135,7 +160,7 @@ const roadmapTool = {
           additionalProperties: false,
         },
       },
-        required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "hasQuantitativeData", "fiveWhys", "fishbone", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
+        required: ["problem", "domain", "goalPct", "timelineWeeks", "ctqs", "metricNouns", "hasQuantitativeData", "fiveWhys", "fishbone", "controlChart", "actions", "pokaYoke", "inScope", "outScope", "sipoc"],
     },
   },
 };
