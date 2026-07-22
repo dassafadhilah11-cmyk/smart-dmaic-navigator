@@ -813,7 +813,7 @@ function SigmaCalculatorCard({ roadmap }: { roadmap: Roadmap | null }) {
 }
 
 function ControlChartCard({ roadmap }: { roadmap: Roadmap | null }) {
-  const rec = roadmap ? recommendChart(roadmap.domain) : null;
+  const rec = roadmap ? recommendChart(roadmap) : null;
 
   return (
     <Card className="border border-border shadow-sm md:col-span-3">
@@ -846,38 +846,72 @@ function ControlChartCard({ roadmap }: { roadmap: Roadmap | null }) {
   );
 }
 
-function recommendChart(domain: Roadmap["domain"]): { chart: string; dataType: string; rationale: string } {
-  switch (domain) {
-    case "food":
-    case "defect":
-      return {
-        chart: "p-Chart",
-        dataType: "Attribute · Proporsi cacat",
-        rationale:
-          "Karena data berupa proporsi unit cacat per batch dengan ukuran sampel yang dapat bervariasi, p-Chart paling tepat untuk memantau stabilitas tingkat defect dari waktu ke waktu.",
-      };
-    case "delay":
-      return {
-        chart: "X̄-R Chart",
-        dataType: "Continuous · Cycle / lead time",
-        rationale:
-          "Untuk metrik waktu yang continuous dan sub-grup kecil (n=2–10), X̄-R Chart memantau rata-rata dan variasi cycle time secara simultan untuk mendeteksi pergeseran proses.",
-      };
-    case "service":
+function recommendChart(roadmap: Roadmap): { chart: string; dataType: string; rationale: string } {
+  // Prefer AI-provided recommendation when available.
+  const ai = (roadmap as unknown as { controlChart?: { chart?: string; dataType?: string; rationale?: string } }).controlChart;
+  if (ai && ai.chart && ai.dataType && ai.rationale) {
+    return { chart: ai.chart, dataType: ai.dataType, rationale: ai.rationale };
+  }
+
+  // Heuristic fallback based on problem text + metric nouns.
+  const text = `${roadmap.problem ?? ""} ${(roadmap.metricNouns ?? []).join(" ")}`.toLowerCase();
+
+  const continuousCue = /(waktu|cycle time|lead time|durasi|menit|detik|jam|suhu|temperatur|berat|gram|kg|ketebalan|panjang|mm|cm|tekanan|viskositas|kekentalan|kadar|ph|kelembapan|voltase|arus|kecepatan|liter|ml)/.test(text);
+  const defectCountCue = /(jumlah cacat|banyak cacat|defect per|cacat per (unit|meter|m2|m²|batch)|keluhan per|jumlah keluhan|jumlah komplain)/.test(text);
+  const proportionCue = /(proporsi|persentase|%|persen|tingkat cacat|reject rate|defect rate|% keterlambatan|% komplain|% reject)/.test(text);
+  const fixedSampleCue = /(ukuran sampel tetap|sampel konstan|selalu \d+\s*(unit|sampel)|per batch \d+|\d+\s*unit per (batch|shift|hari))/.test(text);
+  const varyingSampleCue = /(sampel bervariasi|ukuran sampel berbeda|volume harian berbeda|jumlah transaksi berbeda)/.test(text);
+  const opportunityVariesCue = /(per (m2|m²|meter|1000 transaksi)|area of opportunity|luas berbeda)/.test(text);
+
+  if (defectCountCue) {
+    if (opportunityVariesCue) {
       return {
         chart: "u-Chart",
-        dataType: "Attribute · Jumlah keluhan per unit",
+        dataType: "Attribute · Jumlah cacat per unit (opportunity bervariasi)",
         rationale:
-          "Karena tiap pelanggan dapat menghasilkan lebih dari satu keluhan dan area of opportunity bervariasi, u-Chart memantau jumlah defect per unit dengan tepat.",
+          "Karena data menghitung jumlah cacat per unit dengan area of opportunity yang berbeda antar inspeksi, u-Chart tepat untuk menormalisasi jumlah cacat terhadap ukuran unit.",
       };
-    default:
-      return {
-        chart: "I-MR Chart",
-        dataType: "Continuous · Individual measurements",
-        rationale:
-          "Untuk data individual yang dikumpulkan satu per satu tanpa sub-grup natural, I-MR Chart memantau nilai individu dan moving range untuk variasi proses.",
-      };
+    }
+    return {
+      chart: "c-Chart",
+      dataType: "Attribute · Jumlah cacat per unit (opportunity konstan)",
+      rationale:
+        "Karena tiap unit dapat memiliki lebih dari satu cacat dan area of opportunity konsisten antar inspeksi, c-Chart memantau jumlah cacat per unit secara langsung.",
+    };
   }
+
+  if (proportionCue || (!continuousCue && (roadmap.domain === "food" || roadmap.domain === "defect" || roadmap.domain === "service" || roadmap.domain === "delay"))) {
+    if (fixedSampleCue && !varyingSampleCue) {
+      return {
+        chart: "np-Chart",
+        dataType: "Attribute · Jumlah unit cacat (n konstan)",
+        rationale:
+          "Karena ukuran sampel yang diperiksa konstan setiap periode, np-Chart memantau jumlah unit cacat per subgrup secara langsung tanpa perlu konversi ke proporsi.",
+      };
+    }
+    return {
+      chart: "p-Chart",
+      dataType: "Attribute · Proporsi unit cacat (n bervariasi)",
+      rationale:
+        "Karena data berupa proporsi unit cacat/defective dan ukuran sampel dapat berbeda antar inspeksi, p-Chart tepat untuk memantau stabilitas tingkat defect dari waktu ke waktu.",
+    };
+  }
+
+  if (continuousCue) {
+    return {
+      chart: "X̄-R Chart",
+      dataType: "Continuous · Subgrup kecil (n = 2–10)",
+      rationale:
+        "Metrik utama bersifat kontinu (dapat diukur pada skala) dan dapat dikelompokkan dalam subgrup kecil per shift/batch, sehingga X̄-R Chart memantau rata-rata dan variasi proses secara simultan.",
+    };
+  }
+
+  return {
+    chart: "I-MR Chart",
+    dataType: "Continuous · Pengukuran individual",
+    rationale:
+      "Data dikumpulkan satu observasi per periode tanpa subgrup natural, sehingga I-MR Chart memantau nilai individu beserta moving range untuk mendeteksi pergeseran proses.",
+  };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
