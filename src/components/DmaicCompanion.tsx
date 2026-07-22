@@ -925,6 +925,111 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
+  const data = useMemo(() => {
+    if (!roadmap || roadmap.hasQuantitativeData === false) return null;
+    const rec = recommendChart(roadmap);
+    if (rec.chart !== "X̄-R Chart") return null;
+
+    // Seeded pseudo-random from problem text so simulation is stable across renders.
+    const seedSrc = (roadmap.problem ?? "xbar") + (roadmap.metricNouns?.join("|") ?? "");
+    let seed = 0;
+    for (let i = 0; i < seedSrc.length; i++) seed = (seed * 31 + seedSrc.charCodeAt(i)) >>> 0;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0xffffffff;
+    };
+
+    const target = 100;
+    const sigma = 5;
+    const n = 5; // subgroup size
+    const k = 20; // subgroups
+    const points: { subgroup: string; xbar: number }[] = [];
+    for (let i = 1; i <= k; i++) {
+      let sum = 0;
+      for (let j = 0; j < n; j++) {
+        // Box-Muller
+        const u1 = Math.max(rand(), 1e-9);
+        const u2 = rand();
+        const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        sum += target + sigma * z;
+      }
+      points.push({ subgroup: `#${i}`, xbar: +(sum / n).toFixed(2) });
+    }
+    const mean = points.reduce((s, p) => s + p.xbar, 0) / points.length;
+    // 3-sigma limits on subgroup means: σ_xbar = σ/√n
+    const sigmaXbar = sigma / Math.sqrt(n);
+    const ucl = +(mean + 3 * sigmaXbar).toFixed(2);
+    const lcl = +(mean - 3 * sigmaXbar).toFixed(2);
+    return { points, mean: +mean.toFixed(2), ucl, lcl };
+  }, [roadmap]);
+
+  if (!data) return null;
+
+  const config = {
+    xbar: { label: "Rata-rata Subgrup (X̄)", color: "var(--chart-1)" },
+  };
+
+  return (
+    <Card className="border border-border shadow-sm md:col-span-3">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ShieldCheck className="size-5 text-primary" />
+          X̄-R Chart Simulation
+        </CardTitle>
+        <CardDescription>
+          Simulasi 20 subgrup (n=5) di sekitar rata-rata proses, dengan batas kendali 3σ (UCL/LCL).
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={config} className="h-[320px] w-full">
+          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="subgroup" tickLine={false} axisLine={false} fontSize={11} />
+            <YAxis
+              domain={[Math.floor(data.lcl - 2), Math.ceil(data.ucl + 2)]}
+              tickLine={false}
+              axisLine={false}
+              fontSize={11}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ReferenceLine
+              y={data.ucl}
+              stroke="var(--chart-5)"
+              strokeDasharray="4 4"
+              label={{ value: `UCL ${data.ucl}`, position: "insideTopRight", fill: "var(--chart-5)", fontSize: 11 }}
+            />
+            <ReferenceLine
+              y={data.mean}
+              stroke="var(--chart-2)"
+              strokeDasharray="6 3"
+              label={{ value: `X̿ ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+            />
+            <ReferenceLine
+              y={data.lcl}
+              stroke="var(--chart-5)"
+              strokeDasharray="4 4"
+              label={{ value: `LCL ${data.lcl}`, position: "insideBottomRight", fill: "var(--chart-5)", fontSize: 11 }}
+            />
+            <Line
+              type="linear"
+              dataKey="xbar"
+              stroke="var(--chart-1)"
+              strokeWidth={2}
+              dot={{ r: 3, fill: "var(--chart-1)" }}
+              activeDot={{ r: 5 }}
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        </ChartContainer>
+        <p className="mt-3 text-xs text-slate-500">
+          Data disimulasikan untuk ilustrasi pola X̄-R Chart. Ganti dengan pengukuran subgrup aktual saat fase Measure berjalan.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
