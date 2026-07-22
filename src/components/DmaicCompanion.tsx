@@ -576,6 +576,7 @@ export function DmaicCompanion() {
               <DataCollectionPlanCard roadmap={roadmap} />
               <SigmaCalculatorCard roadmap={roadmap} />
               <ControlChartCard roadmap={roadmap} />
+              <XbarRChartCard roadmap={roadmap} />
             </div>
           </TabsContent>
 
