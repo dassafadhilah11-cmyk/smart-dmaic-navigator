@@ -48,9 +48,12 @@ For each CTQ question you emit, also emit a SHORT measurable parameter noun (2�
 
 BASELINE MEASUREMENT (for DPMO Calculator prefill):
 QUANTITATIVE DATA CHECK (CRITICAL — do NOT invent numbers):
-First, inspect the user's problem text and determine whether it contains EXPLICIT quantitative signals sufficient for DPMO analysis. Sufficient means at least TWO of these are explicitly stated (as numbers, percentages, or clearly-countable phrases): (a) a unit/transaction/sample count (e.g. "1500 unit", "2000 transaksi"), (b) a defect/error/late count OR an explicit defect rate/percentage (e.g. "90 cacat", "15% reject", "20% keterlambatan"), (c) a clear number of critical parameters / defect opportunities per unit.
-  - If sufficient → set "hasQuantitativeData": true and emit a "baseline" object populated from the user's stated numbers.
-  - If NOT sufficient (problem is purely qualitative, describes symptoms without countable magnitudes) → set "hasQuantitativeData": false and OMIT the "baseline" field entirely. Do NOT invent numbers.
+First, inspect the user's problem text. DPMO analysis requires an EXPLICIT defect/failure/error/reject/late/complaint count or an EXPLICIT defect rate/percentage stated by the user. This is a HARD REQUIREMENT — it is the single non-negotiable signal.
+  - Qualifying defect signals (must appear explicitly): a countable defect quantity (e.g. "90 cacat", "45 reject", "120 keluhan", "30 keterlambatan") OR an explicit defect/reject/failure/late rate or percentage (e.g. "15% reject", "20% keterlambatan", "cacat 8%", "0.5% komplain").
+  - NON-qualifying signals (these DO NOT count as defect data, even if numeric): sample sizes / unit counts / transaction volumes alone (e.g. "1500 unit per hari"), measurement tolerances or specification limits (e.g. "±0.2 mm", "toleransi 5%"), target values, SLA thresholds, time durations, temperatures, weights, or any other process/parameter numbers that are not a count or rate of defects/failures.
+  - Decision rule:
+      * If the text contains an explicit defect COUNT or defect RATE/PERCENTAGE as defined above → set "hasQuantitativeData": true and emit a "baseline" object populated from the user's stated numbers (use a stated unit/sample count when present; otherwise infer a realistic baseline sample size).
+      * If the text has NO explicit defect count and NO explicit defect rate (even if sample sizes, tolerances, or other numbers are present) → set "hasQuantitativeData": false and OMIT the "baseline" field entirely. Do NOT invent a defect count. Do NOT emit baseline just because units or tolerances are mentioned.
 
 When emitted, "baseline" is an object with THREE integers:
   - "units": total units / transactions / samples inspected in the baseline period. If the user states an explicit count (e.g. "1500 unit", "2000 transaksi"), USE THAT NUMBER. Otherwise infer a realistic baseline sample size for a 12-week Six Sigma project (typical range 500–5000 depending on process volume).
