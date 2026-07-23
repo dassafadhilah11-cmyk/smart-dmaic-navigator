@@ -213,6 +213,44 @@ export const generateRoadmap = createServerFn({ method: "POST" })
         return { ok: false as const, error: "AI tidak mengembalikan struktur yang diharapkan." };
       }
       const roadmap = JSON.parse(argsStr);
+
+      // Server-side guard: strictly enforce the "explicit defect count/rate" rule
+      // regardless of what the model returned. Strip baseline + force
+      // hasQuantitativeData:false whenever the user's text has no explicit
+      // defect COUNT or defect RATE/PERCENTAGE.
+      try {
+        const text = String(data.problem || "").toLowerCase();
+        // Defect-context keywords (Indonesian + English).
+        const defectCtx =
+          /(cacat|reject|rijek|defect|defective|gagal|kegagalan|fail(?:ure|ed)?|error|kesalahan|keluhan|komplain|complaint|keterlambatan|terlambat|late|scrap|rework|rusak|ng\b|not good)/;
+        // Explicit defect COUNT: a number immediately near a defect keyword.
+        const defectCount =
+          /(\d+(?:[.,]\d+)?)\s*(?:unit|pcs|pieces|kasus|case|kali|times|item|batch)?\s*(cacat|reject|rijek|defect|defective|gagal|kegagalan|fail(?:ure|ed)?|error|kesalahan|keluhan|komplain|complaint|keterlambatan|terlambat|late|scrap|rework|rusak|ng\b|not good)/;
+        const defectCountAfter =
+          /(ditemukan|found|terdapat|ada|sebanyak|total)\s+(\d+(?:[.,]\d+)?)\s+(?:unit\s+)?(cacat|reject|rijek|defect|defective|gagal|kegagalan|fail(?:ure|ed)?|error|kesalahan|keluhan|komplain|complaint|keterlambatan|terlambat|late|scrap|rework|rusak|ng\b|not good)/;
+        // Explicit defect RATE / PERCENTAGE tied to a defect keyword.
+        const defectRate =
+          /(\d+(?:[.,]\d+)?)\s*%[^.]{0,40}?(cacat|reject|rijek|defect|defective|gagal|kegagalan|fail(?:ure|ed)?|error|kesalahan|keluhan|komplain|complaint|keterlambatan|terlambat|late|scrap|rework|rusak|ng\b|not good)/;
+        const defectRateBefore =
+          /(cacat|reject|rijek|defect|defective|gagal|kegagalan|fail(?:ure|ed)?|error|kesalahan|keluhan|komplain|complaint|keterlambatan|terlambat|late|scrap|rework|rusak|ng\b|not good)[^.]{0,40}?(\d+(?:[.,]\d+)?)\s*%/;
+
+        const hasExplicitDefectData =
+          defectCtx.test(text) &&
+          (defectCount.test(text) ||
+            defectCountAfter.test(text) ||
+            defectRate.test(text) ||
+            defectRateBefore.test(text));
+
+        if (!hasExplicitDefectData) {
+          roadmap.hasQuantitativeData = false;
+          delete roadmap.baseline;
+        }
+      } catch {
+        // If guard fails for any reason, prefer the safer path: no baseline.
+        roadmap.hasQuantitativeData = false;
+        delete roadmap.baseline;
+      }
+
       return { ok: true as const, roadmap };
     } catch (e) {
       console.error("generateRoadmap failed:", e);
