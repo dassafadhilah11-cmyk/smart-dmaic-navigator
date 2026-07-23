@@ -927,7 +927,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
   const data = useMemo(() => {
-    if (!roadmap || roadmap.hasQuantitativeData === false) return null;
+    if (!roadmap) return null;
     const rec = recommendChart(roadmap);
     if (rec.chart !== "X̄-R Chart") return null;
 
@@ -1154,7 +1154,6 @@ function FishboneCard({ roadmap }: { roadmap: Roadmap }) {
 
 function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
   const data = useMemo(() => {
-    if (!roadmap?.hasQuantitativeData) return [];
     const fb = roadmap?.fishbone;
     if (!fb) return [];
     const rows = fishboneCategories
