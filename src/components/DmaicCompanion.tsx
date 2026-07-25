@@ -809,6 +809,24 @@ export function DmaicCompanion() {
                   Cetak / Simpan jadi PDF
                 </Button>
               )}
+              {roadmap && (
+                <Button
+                  onClick={async () => {
+                    try {
+                      await exportRoadmapToDocx(roadmap, goalStatement);
+                      toast.success("Dokumen Word berhasil diunduh.");
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Gagal membuat dokumen Word.");
+                    }
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  <FileText className="mr-2 size-4" />
+                  Export ke Word (.docx)
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
