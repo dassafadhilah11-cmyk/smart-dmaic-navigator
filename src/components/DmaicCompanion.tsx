@@ -31,7 +31,23 @@ import {
   Users,
   ArrowRight,
   RotateCcw,
+  FileText,
 } from "lucide-react";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  Table as DocxTable,
+  TableRow as DocxTableRow,
+  TableCell as DocxTableCell,
+  WidthType,
+  BorderStyle,
+  ShadingType,
+  AlignmentType,
+} from "docx";
+import { saveAs } from "file-saver";
 import { Input } from "@/components/ui/input";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import {
@@ -392,6 +408,256 @@ function buildRoadmap(problem: string): Roadmap {
   };
 }
 
+/* ---------- Export to Word (.docx) ---------- */
+
+function p(text: string, opts: { bold?: boolean; size?: number; italic?: boolean; color?: string } = {}) {
+  return new Paragraph({
+    spacing: { after: 80 },
+    children: [new TextRun({ text, bold: opts.bold, italics: opts.italic, size: opts.size, color: opts.color })],
+  });
+}
+
+function h(text: string, level: (typeof HeadingLevel)[keyof typeof HeadingLevel]) {
+  return new Paragraph({
+    heading: level,
+    spacing: { before: 240, after: 120 },
+    children: [new TextRun({ text, bold: true })],
+  });
+}
+
+function bullet(text: string) {
+  return new Paragraph({
+    bullet: { level: 0 },
+    spacing: { after: 40 },
+    children: [new TextRun({ text })],
+  });
+}
+
+function cell(text: string, opts: { bold?: boolean; shade?: string; width?: number } = {}) {
+  const border = { style: BorderStyle.SINGLE, size: 4, color: "CCCCCC" };
+  return new DocxTableCell({
+    width: opts.width ? { size: opts.width, type: WidthType.DXA } : undefined,
+    borders: { top: border, bottom: border, left: border, right: border },
+    shading: opts.shade ? { fill: opts.shade, type: ShadingType.CLEAR, color: "auto" } : undefined,
+    margins: { top: 80, bottom: 80, left: 120, right: 120 },
+    children: [new Paragraph({ children: [new TextRun({ text, bold: opts.bold })] })],
+  });
+}
+
+function docxTable(headers: string[], rows: string[][], colWidths?: number[]) {
+  const widths = colWidths ?? headers.map(() => Math.floor(9360 / headers.length));
+  return new DocxTable({
+    width: { size: 9360, type: WidthType.DXA },
+    columnWidths: widths,
+    rows: [
+      new DocxTableRow({
+        tableHeader: true,
+        children: headers.map((hd, i) => cell(hd, { bold: true, shade: "E8F1FA", width: widths[i] })),
+      }),
+      ...rows.map(
+        (r) =>
+          new DocxTableRow({
+            children: r.map((c, i) => cell(c, { width: widths[i] })),
+          }),
+      ),
+    ],
+  });
+}
+
+function normSInvExport(prob: number): number {
+  // Reuse the top-level normSInv already defined in this file.
+  return normSInv(prob);
+}
+
+async function exportRoadmapToDocx(roadmap: Roadmap, goalStatement: string) {
+  const domainLabel: Record<Roadmap["domain"], string> = {
+    food: "Food & Beverage",
+    delay: "Lead Time / Delay",
+    defect: "Manufacturing / Defect",
+    service: "Service / Customer",
+    generic: "Generic",
+  };
+
+  const children: (Paragraph | DocxTable)[] = [];
+
+  // Title
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 120 },
+      children: [new TextRun({ text: "Smart DMAIC Project Companion", bold: true, size: 36, color: "1E3A8A" })],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 240 },
+      children: [new TextRun({ text: "Lean Six Sigma Roadmap Report", italics: true, size: 22, color: "475569" })],
+    }),
+  );
+
+  // ---------- DEFINE ----------
+  children.push(h("1. DEFINE", HeadingLevel.HEADING_1));
+  children.push(h("Problem Statement", HeadingLevel.HEADING_2));
+  children.push(p(roadmap.problem || "—"));
+  children.push(h("SMART Goal Statement", HeadingLevel.HEADING_2));
+  children.push(p(goalStatement || `Menurunkan tingkat masalah sebesar ${roadmap.goalPct}%.`));
+  children.push(
+    p(`Domain terdeteksi: ${domainLabel[roadmap.domain]}   |   Target reduksi: ${roadmap.goalPct}%   |   Timeline: ${roadmap.timelineWeeks} minggu`, { italic: true, color: "475569" }),
+  );
+
+  children.push(h("Project Scope", HeadingLevel.HEADING_2));
+  children.push(
+    docxTable(
+      ["In-Scope", "Out-of-Scope"],
+      Array.from({ length: Math.max(roadmap.inScope.length, roadmap.outScope.length) }).map((_, i) => [
+        roadmap.inScope[i] ?? "",
+        roadmap.outScope[i] ?? "",
+      ]),
+      [4680, 4680],
+    ),
+  );
+
+  children.push(h("SIPOC Diagram", HeadingLevel.HEADING_2));
+  const s = roadmap.sipoc;
+  const sipocRows = Array.from({ length: 4 }).map((_, i) => [
+    s.suppliers[i] ?? "",
+    s.inputs[i] ?? "",
+    s.process[i] ?? "",
+    s.outputs[i] ?? "",
+    s.customers[i] ?? "",
+  ]);
+  const sipocCol = Math.floor(9360 / 5);
+  children.push(
+    docxTable(
+      ["Suppliers", "Inputs", "Process", "Outputs", "Customers"],
+      sipocRows,
+      [sipocCol, sipocCol, sipocCol, sipocCol, 9360 - sipocCol * 4],
+    ),
+  );
+
+  // ---------- MEASURE ----------
+  children.push(h("2. MEASURE", HeadingLevel.HEADING_1));
+  children.push(h("Data Collection Plan (CTQs)", HeadingLevel.HEADING_2));
+  const dcpRows = roadmap.ctqs.map((ctq, i) => {
+    const metric =
+      roadmap.metricNouns?.[i]?.trim() ||
+      ctq.replace(/^(Berapa|Bagaimana|Apa|Kapan|Siapa|Channel)\s+/i, "").replace(/\?$/, "");
+    const dataType = i % 2 === 0 ? "Continuous" : "Discrete / Attribute";
+    const tool =
+      roadmap.domain === "food" || roadmap.domain === "defect"
+        ? ["Check Sheet", "Sensor Log", "Pareto Tally", "QC Inspection Form"][i % 4]
+        : roadmap.domain === "delay"
+          ? ["Time Study", "Andon Log", "Throughput Counter", "Cycle Time Sheet"][i % 4]
+          : ["CRM Ticket Log", "Survey CSAT", "Audit Form", "System Report"][i % 4];
+    const sample = ["30 sampel / shift", "Seluruh batch / hari", "n ≥ 50 / minggu", "Sampling acak 10%"][i % 4];
+    return [metric, dataType, tool, sample];
+  });
+  children.push(
+    docxTable(["Metric / CTQ", "Data Type", "Measurement Tool", "Sample Size"], dcpRows, [3000, 1800, 2560, 2000]),
+  );
+
+  // DPMO results if baseline present
+  const b = roadmap.baseline;
+  if (roadmap.hasQuantitativeData !== false && b && b.units && b.opportunitiesPerUnit && b.defects != null) {
+    const dpmo = (b.defects / (b.units * b.opportunitiesPerUnit)) * 1_000_000;
+    const sigma = normSInvExport(1 - dpmo / 1_000_000) + 1.5;
+    children.push(h("DPMO & Sigma Level (Baseline)", HeadingLevel.HEADING_2));
+    children.push(
+      docxTable(
+        ["Parameter", "Value"],
+        [
+          ["Total Units Inspected", String(b.units)],
+          ["Opportunities per Unit", String(b.opportunitiesPerUnit)],
+          ["Total Defects Found", String(b.defects)],
+          ["DPMO", Math.round(dpmo).toLocaleString("id-ID")],
+          ["Sigma Level", isFinite(sigma) ? sigma.toFixed(2) : "—"],
+        ],
+        [4680, 4680],
+      ),
+    );
+  }
+
+  // ---------- ANALYZE ----------
+  children.push(h("3. ANALYZE", HeadingLevel.HEADING_1));
+  children.push(h("5 Whys Analysis", HeadingLevel.HEADING_2));
+  roadmap.fiveWhys.forEach((w) => children.push(bullet(w)));
+
+  children.push(h("Fishbone Diagram (6M Categories)", HeadingLevel.HEADING_2));
+  const fb = roadmap.fishbone;
+  const fbLabel: Record<keyof typeof fb, string> = {
+    manpower: "Manpower",
+    machine: "Machine",
+    method: "Method",
+    material: "Material",
+    measurement: "Measurement",
+    motherNature: "Mother Nature (Environment)",
+  };
+  (Object.keys(fbLabel) as (keyof typeof fb)[]).forEach((k) => {
+    children.push(p(fbLabel[k], { bold: true }));
+    fb[k].forEach((c) => children.push(bullet(c)));
+  });
+
+  // ---------- IMPROVE ----------
+  children.push(h("4. IMPROVE", HeadingLevel.HEADING_1));
+  children.push(h("Improvement Action Plan (5W+1H)", HeadingLevel.HEADING_2));
+  children.push(
+    docxTable(
+      ["Failure Mode / Root Cause", "Solution", "Method / Lean Tool"],
+      roadmap.actions.map((a) => [a.failure, a.solution, a.method]),
+      [3120, 3120, 3120],
+    ),
+  );
+  if (roadmap.pokaYoke?.length) {
+    children.push(h("Poka-Yoke / Mistake-Proofing", HeadingLevel.HEADING_2));
+    roadmap.pokaYoke.forEach((x) => children.push(bullet(x)));
+  }
+
+  // ---------- CONTROL ----------
+  children.push(h("5. CONTROL", HeadingLevel.HEADING_1));
+  children.push(h("Control Plan / SOP Checklist", HeadingLevel.HEADING_2));
+  const cp = controlPlanByDomain[roadmap.domain];
+  children.push(
+    docxTable(
+      ["Control Activity", "Frequency", "Owner"],
+      cp.map((it) => [it.item, it.frequency, it.owner]),
+      [4680, 2340, 2340],
+    ),
+  );
+
+  children.push(h("Reaction Plan (OCAP)", HeadingLevel.HEADING_2));
+  const ocap = [
+    "STOP — Hentikan proses pada titik abnormal & isolasi output yang dicurigai.",
+    "ALERT — Notifikasi supervisor / process owner sesuai matriks eskalasi.",
+    "CONTAIN — Karantina output, identifikasi unit terdampak (containment action).",
+    "INVESTIGATE — Jalankan 5 Whys cepat untuk menemukan penyebab spesifik.",
+    "CORRECT — Terapkan corrective action dan verifikasi sebelum proses dilanjutkan.",
+    "DOCUMENT — Catat kejadian, root cause, & tindakan pada log OCAP untuk review.",
+  ];
+  ocap.forEach((step) => children.push(bullet(step)));
+
+  const doc = new Document({
+    creator: "Smart DMAIC Project Companion",
+    title: "DMAIC Roadmap Report",
+    styles: {
+      default: { document: { run: { font: "Calibri", size: 22 } } },
+    },
+    sections: [
+      {
+        properties: {
+          page: {
+            size: { width: 12240, height: 15840 },
+            margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
+          },
+        },
+        children,
+      },
+    ],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const stamp = new Date().toISOString().slice(0, 10);
+  saveAs(blob, `DMAIC-Roadmap-${stamp}.docx`);
+}
+
 export function DmaicCompanion() {
   const [input, setInput] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
@@ -541,6 +807,24 @@ export function DmaicCompanion() {
                 >
                   <Printer className="mr-2 size-4" />
                   Cetak / Simpan jadi PDF
+                </Button>
+              )}
+              {roadmap && (
+                <Button
+                  onClick={async () => {
+                    try {
+                      await exportRoadmapToDocx(roadmap, goalStatement);
+                      toast.success("Dokumen Word berhasil diunduh.");
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Gagal membuat dokumen Word.");
+                    }
+                  }}
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  <FileText className="mr-2 size-4" />
+                  Export ke Word (.docx)
                 </Button>
               )}
             </div>
