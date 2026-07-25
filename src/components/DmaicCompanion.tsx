@@ -31,7 +31,23 @@ import {
   Users,
   ArrowRight,
   RotateCcw,
+  FileText,
 } from "lucide-react";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  Table as DocxTable,
+  TableRow as DocxTableRow,
+  TableCell as DocxTableCell,
+  WidthType,
+  BorderStyle,
+  ShadingType,
+  AlignmentType,
+} from "docx";
+import { saveAs } from "file-saver";
 import { Input } from "@/components/ui/input";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import {
