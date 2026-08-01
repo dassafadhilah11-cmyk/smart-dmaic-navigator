@@ -1320,7 +1320,9 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
     if (!roadmap) return null;
     if (roadmap.hasQuantitativeData === false) return null;
     const rec = recommendChart(roadmap);
-    if (rec.chart !== "p-Chart") return null;
+    const kind =
+      rec.chart === "p-Chart" ? "p" : rec.chart === "np-Chart" ? "np" : rec.chart === "c-Chart" ? "c" : null;
+    if (!kind) return null;
 
     const b = roadmap.baseline;
     let pBar = 0.08;
@@ -1342,15 +1344,66 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
     const points: { sample: string; p: number; n: number; ucl: number; lcl: number }[] = [];
     const raw: { n: number; d: number }[] = [];
     for (let i = 0; i < k; i++) {
-      // sample size varies ±25% (p-Chart hallmark)
-      const n = Math.max(20, Math.round(baseN * (0.75 + rand() * 0.5)));
+      // p-Chart: sample size varies ±25%. np/c-Chart: fixed sample size.
+      const n = kind === "p" ? Math.max(20, Math.round(baseN * (0.75 + rand() * 0.5))) : baseN;
       let d = 0;
-      for (let j = 0; j < n; j++) if (rand() < pBar) d++;
+      if (kind === "c") {
+        // count of defects per inspection unit (Poisson-ish around cBar)
+        const cBar = Math.max(1, pBar * baseN);
+        // simple Poisson sampler (Knuth)
+        const L = Math.exp(-cBar);
+        let pAcc = 1;
+        let count = -1;
+        do {
+          count++;
+          pAcc *= rand();
+        } while (pAcc > L && count < 10000);
+        d = count;
+      } else {
+        for (let j = 0; j < n; j++) if (rand() < pBar) d++;
+      }
       raw.push({ n, d });
     }
+
+    if (kind === "c") {
+      // c-Chart: CL = c̄, UCL/LCL = c̄ ± 3·√c̄
+      const cBar = raw.reduce((s, r) => s + r.d, 0) / raw.length;
+      const sd = Math.sqrt(cBar);
+      raw.forEach((r, i) => {
+        points.push({
+          sample: `Sample ${i + 1}`,
+          p: r.d,
+          n: r.n,
+          ucl: +(cBar + 3 * sd).toFixed(2),
+          lcl: +Math.max(0, cBar - 3 * sd).toFixed(2),
+        });
+      });
+      const maxUcl = Math.max(...points.map((q) => q.ucl), ...points.map((q) => q.p));
+      return { kind, points, center: +cBar.toFixed(2), maxUcl };
+    }
+
     const totalN = raw.reduce((s, r) => s + r.n, 0);
     const totalD = raw.reduce((s, r) => s + r.d, 0);
     const pCenter = totalN > 0 ? totalD / totalN : pBar;
+
+    if (kind === "np") {
+      // np-Chart: CL = n·p̄, UCL/LCL = n·p̄ ± 3·√(n·p̄·(1−p̄)) with fixed n
+      const nFixed = baseN;
+      const npBar = nFixed * pCenter;
+      const sd = Math.sqrt(npBar * (1 - pCenter));
+      raw.forEach((r, i) => {
+        points.push({
+          sample: `Sample ${i + 1}`,
+          p: r.d,
+          n: r.n,
+          ucl: +Math.min(nFixed, npBar + 3 * sd).toFixed(2),
+          lcl: +Math.max(0, npBar - 3 * sd).toFixed(2),
+        });
+      });
+      const maxUcl = Math.max(...points.map((q) => q.ucl), ...points.map((q) => q.p));
+      return { kind, points, center: +npBar.toFixed(2), maxUcl, n: nFixed };
+    }
+
     raw.forEach((r, i) => {
       const sd = Math.sqrt((pCenter * (1 - pCenter)) / r.n);
       points.push({
@@ -1361,16 +1414,35 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
         lcl: +Math.max(0, (pCenter - 3 * sd) * 100).toFixed(2),
       });
     });
-    const maxUcl = Math.max(...points.map((p) => p.ucl), ...points.map((p) => p.p));
-    return { points, center: +(pCenter * 100).toFixed(2), maxUcl };
+    const maxUcl = Math.max(...points.map((q) => q.ucl), ...points.map((q) => q.p));
+    return { kind, points, center: +(pCenter * 100).toFixed(2), maxUcl };
   }, [roadmap]);
 
   if (!data) return null;
 
+  const isPct = data.kind === "p";
+  const unit = isPct ? "%" : "";
+  const seriesLabel =
+    data.kind === "p" ? "Proporsi Cacat (%)" : data.kind === "np" ? "Jumlah Unit Cacat" : "Jumlah Cacat per Unit";
+  const centerSymbol = data.kind === "p" ? "p̄" : data.kind === "np" ? "n·p̄" : "c̄";
+  const chartTitle = data.kind === "p" ? "p-Chart Simulation" : data.kind === "np" ? "np-Chart Simulation" : "c-Chart Simulation";
+  const chartDescription =
+    data.kind === "p"
+      ? `Simulasi 20 sampel dengan ukuran sampel bervariasi. Batas kendali dihitung dari rata-rata proporsi cacat (p̄ = ${data.center}%).`
+      : data.kind === "np"
+        ? `Simulasi 20 sampel dengan ukuran sampel tetap (n = ${(data as { n?: number }).n}). Batas kendali dihitung dari rata-rata jumlah unit cacat (n·p̄ = ${data.center}).`
+        : `Simulasi 20 unit inspeksi dengan area of opportunity konstan. Batas kendali dihitung dari rata-rata jumlah cacat per unit (c̄ = ${data.center}).`;
+  const footNote =
+    data.kind === "p"
+      ? "Data disimulasikan dari baseline defect rate untuk ilustrasi pola p-Chart. UCL/LCL melangkah karena ukuran sampel bervariasi."
+      : data.kind === "np"
+        ? "Data disimulasikan dari baseline defect rate untuk ilustrasi pola np-Chart. UCL/LCL konstan karena ukuran sampel tetap."
+        : "Data disimulasikan dari baseline defect rate untuk ilustrasi pola c-Chart. UCL/LCL konstan karena area of opportunity tetap.";
+
   const config = {
-    p: { label: "Proporsi Cacat (%)", color: "var(--chart-1)" },
-    ucl: { label: "UCL (%)", color: "var(--chart-5)" },
-    lcl: { label: "LCL (%)", color: "var(--chart-5)" },
+    p: { label: seriesLabel, color: "var(--chart-1)" },
+    ucl: { label: `UCL${unit ? ` (${unit})` : ""}`, color: "var(--chart-5)" },
+    lcl: { label: `LCL${unit ? ` (${unit})` : ""}`, color: "var(--chart-5)" },
   };
 
   return (
@@ -1378,11 +1450,9 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <ShieldCheck className="size-5 text-primary" />
-          p-Chart Simulation
+          {chartTitle}
         </CardTitle>
-        <CardDescription>
-          Simulasi 20 sampel dengan ukuran sampel bervariasi. Batas kendali dihitung dari rata-rata proporsi cacat (p̄ = {data.center}%).
-        </CardDescription>
+        <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={config} className="h-[320px] w-full">
@@ -1405,14 +1475,14 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
               tickLine={false}
               axisLine={false}
               fontSize={11}
-              tickFormatter={(v: number) => `${v}%`}
+              tickFormatter={(v: number) => `${v}${unit}`}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ReferenceLine
               y={data.center}
               stroke="var(--chart-2)"
               strokeDasharray="6 3"
-              label={{ value: `p̄ ${data.center}%`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+              label={{ value: `${centerSymbol} ${data.center}${unit}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
             />
             <Line
               type="stepAfter"
@@ -1443,9 +1513,7 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
             />
           </ComposedChart>
         </ChartContainer>
-        <p className="mt-3 text-xs text-slate-500">
-          Data disimulasikan dari baseline defect rate untuk ilustrasi pola p-Chart. UCL/LCL melangkah karena ukuran sampel bervariasi.
-        </p>
+        <p className="mt-3 text-xs text-slate-500">{footNote}</p>
       </CardContent>
     </Card>
   );
