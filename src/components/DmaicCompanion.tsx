@@ -1316,6 +1316,146 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
 }
 
 function CopyButton({ text }: { text: string }) {
+  return CopyButtonImpl({ text });
+}
+
+function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
+  const data = useMemo(() => {
+    if (!roadmap) return null;
+    if (roadmap.hasQuantitativeData === false) return null;
+    const rec = recommendChart(roadmap);
+    if (rec.chart !== "p-Chart") return null;
+
+    const b = roadmap.baseline;
+    let pBar = 0.08;
+    if (b && b.units && b.defects != null) {
+      const denom = b.units * (b.opportunitiesPerUnit || 1);
+      if (denom > 0) pBar = Math.min(0.9, Math.max(0.005, b.defects / denom));
+    }
+
+    const seedSrc = (roadmap.problem ?? "pchart") + (roadmap.metricNouns?.join("|") ?? "");
+    let seed = 0;
+    for (let i = 0; i < seedSrc.length; i++) seed = (seed * 31 + seedSrc.charCodeAt(i)) >>> 0;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0xffffffff;
+    };
+
+    const k = 20;
+    const baseN = b?.units ? Math.max(30, Math.round(b.units / k)) : 100;
+    const points: { sample: string; p: number; n: number; ucl: number; lcl: number }[] = [];
+    const raw: { n: number; d: number }[] = [];
+    for (let i = 0; i < k; i++) {
+      // sample size varies ±25% (p-Chart hallmark)
+      const n = Math.max(20, Math.round(baseN * (0.75 + rand() * 0.5)));
+      let d = 0;
+      for (let j = 0; j < n; j++) if (rand() < pBar) d++;
+      raw.push({ n, d });
+    }
+    const totalN = raw.reduce((s, r) => s + r.n, 0);
+    const totalD = raw.reduce((s, r) => s + r.d, 0);
+    const pCenter = totalN > 0 ? totalD / totalN : pBar;
+    raw.forEach((r, i) => {
+      const sd = Math.sqrt((pCenter * (1 - pCenter)) / r.n);
+      points.push({
+        sample: `Sample ${i + 1}`,
+        p: +((r.d / r.n) * 100).toFixed(2),
+        n: r.n,
+        ucl: +Math.min(100, (pCenter + 3 * sd) * 100).toFixed(2),
+        lcl: +Math.max(0, (pCenter - 3 * sd) * 100).toFixed(2),
+      });
+    });
+    const maxUcl = Math.max(...points.map((p) => p.ucl), ...points.map((p) => p.p));
+    return { points, center: +(pCenter * 100).toFixed(2), maxUcl };
+  }, [roadmap]);
+
+  if (!data) return null;
+
+  const config = {
+    p: { label: "Proporsi Cacat (%)", color: "var(--chart-1)" },
+    ucl: { label: "UCL (%)", color: "var(--chart-5)" },
+    lcl: { label: "LCL (%)", color: "var(--chart-5)" },
+  };
+
+  return (
+    <Card className="border border-border shadow-sm md:col-span-3">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ShieldCheck className="size-5 text-primary" />
+          p-Chart Simulation
+        </CardTitle>
+        <CardDescription>
+          Simulasi 20 sampel dengan ukuran sampel bervariasi. Batas kendali dihitung dari rata-rata proporsi cacat (p̄ = {data.center}%).
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={config} className="h-[320px] w-full">
+          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 28 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="sample"
+              tickLine={false}
+              axisLine={false}
+              fontSize={10}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={50}
+              tickFormatter={(v: string) => v.replace("Sample ", "")}
+              label={{ value: "Nomor Sampel", position: "insideBottom", offset: -18, fontSize: 11 }}
+            />
+            <YAxis
+              domain={[0, Math.ceil(data.maxUcl + 2)]}
+              tickLine={false}
+              axisLine={false}
+              fontSize={11}
+              tickFormatter={(v: number) => `${v}%`}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ReferenceLine
+              y={data.center}
+              stroke="var(--chart-2)"
+              strokeDasharray="6 3"
+              label={{ value: `p̄ ${data.center}%`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+            />
+            <Line
+              type="stepAfter"
+              dataKey="ucl"
+              stroke="var(--chart-5)"
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
+              dot={false}
+              isAnimationActive={false}
+            />
+            <Line
+              type="stepAfter"
+              dataKey="lcl"
+              stroke="var(--chart-5)"
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
+              dot={false}
+              isAnimationActive={false}
+            />
+            <Line
+              type="linear"
+              dataKey="p"
+              stroke="var(--chart-1)"
+              strokeWidth={2}
+              dot={{ r: 3, fill: "var(--chart-1)" }}
+              activeDot={{ r: 5 }}
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        </ChartContainer>
+        <p className="mt-3 text-xs text-slate-500">
+          Data disimulasikan dari baseline defect rate untuk ilustrasi pola p-Chart. UCL/LCL melangkah karena ukuran sampel bervariasi.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CopyButtonImpl({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     try {
