@@ -1315,10 +1315,6 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
   );
 }
 
-function CopyButton({ text }: { text: string }) {
-  return CopyButtonImpl({ text });
-}
-
 function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
   const data = useMemo(() => {
     if (!roadmap) return null;
@@ -1455,7 +1451,7 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
   );
 }
 
-function CopyButtonImpl({ text }: { text: string }) {
+function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     try {
