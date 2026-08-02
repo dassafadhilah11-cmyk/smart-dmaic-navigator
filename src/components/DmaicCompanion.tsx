@@ -1318,9 +1318,18 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
       <CardContent>
         <div className="overflow-x-auto">
           <ChartContainer config={config} className="h-[320px] min-w-[600px] w-full">
-            <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="subgroup" tickLine={false} axisLine={false} fontSize={11} />
+          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 48 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="subgroup"
+              tickLine={false}
+              axisLine={false}
+              fontSize={10}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={50}
+            />
               <YAxis
                 domain={[Math.floor(data.lcl - 2), Math.ceil(data.ucl + 2)]}
                 tickLine={false}
