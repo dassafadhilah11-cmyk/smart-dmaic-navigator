@@ -764,6 +764,55 @@ export function DmaicCompanion() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+        <section className="print:hidden">
+          <Card className="border-primary/20 shadow-sm bg-gradient-to-br from-card to-secondary/30">
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Selamat datang di Smart DMAIC Project Companion
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                  Alat ini membantu Anda membangun roadmap Lean Six Sigma lengkap hanya dari deskripsi masalah bisnis atau operasional. Dirancang untuk mahasiswa, praktisi LSS pemula, trainer, serta UKM yang belum memiliki ahli LSS internal.
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
+                  Cara kerja
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      1
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Deskripsikan masalah</p>
+                      <p className="text-xs text-muted-foreground">Tulis kondisi aktual, metrik, dan target perbaikan.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      2
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Generate roadmap</p>
+                      <p className="text-xs text-muted-foreground">AI merancang charter, SIPOC, CTQ, dan rencana pengukuran.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-card/60 p-3">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                      3
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Dapatkan rencana DMAIC</p>
+                      <p className="text-xs text-muted-foreground">Lihat 5 fase lengkap dengan chart dan action plan.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         <Card className="border-primary/20 shadow-lg print:hidden">
           <CardHeader>
             <CardTitle className="text-lg">Deskripsikan Masalah Anda</CardTitle>
