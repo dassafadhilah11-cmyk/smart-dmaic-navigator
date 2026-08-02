@@ -1506,64 +1506,66 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
         <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config} className="h-[320px] w-full">
-          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 28 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="sample"
-              tickLine={false}
-              axisLine={false}
-              fontSize={10}
-              interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={50}
-              tickFormatter={(v: string) => v.replace("Sample ", "")}
-              label={{ value: "Nomor Sampel", position: "insideBottom", offset: -18, fontSize: 11 }}
-            />
-            <YAxis
-              domain={[0, Math.ceil(data.maxUcl + 2)]}
-              tickLine={false}
-              axisLine={false}
-              fontSize={11}
-              tickFormatter={(v: number) => `${v}${unit}`}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ReferenceLine
-              y={data.center}
-              stroke="var(--chart-2)"
-              strokeDasharray="6 3"
-              label={{ value: `${centerSymbol} ${data.center}${unit}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
-            />
-            <Line
-              type="stepAfter"
-              dataKey="ucl"
-              stroke="var(--chart-5)"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="stepAfter"
-              dataKey="lcl"
-              stroke="var(--chart-5)"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="linear"
-              dataKey="p"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "var(--chart-1)" }}
-              activeDot={{ r: 5 }}
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-        </ChartContainer>
+        <div className="overflow-x-auto">
+          <ChartContainer config={config} className="h-[320px] min-w-[600px] w-full">
+            <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 28 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="sample"
+                tickLine={false}
+                axisLine={false}
+                fontSize={10}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+                tickFormatter={(v: string) => v.replace("Sample ", "")}
+                label={{ value: "Nomor Sampel", position: "insideBottom", offset: -18, fontSize: 11 }}
+              />
+              <YAxis
+                domain={[0, Math.ceil(data.maxUcl + 2)]}
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+                tickFormatter={(v: number) => `${v}${unit}`}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ReferenceLine
+                y={data.center}
+                stroke="var(--chart-2)"
+                strokeDasharray="6 3"
+                label={{ value: `${centerSymbol} ${data.center}${unit}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+              />
+              <Line
+                type="stepAfter"
+                dataKey="ucl"
+                stroke="var(--chart-5)"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="stepAfter"
+                dataKey="lcl"
+                stroke="var(--chart-5)"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="linear"
+                dataKey="p"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "var(--chart-1)" }}
+                activeDot={{ r: 5 }}
+                isAnimationActive={false}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
         <p className="mt-3 text-xs text-slate-500">{footNote}</p>
       </CardContent>
     </Card>
