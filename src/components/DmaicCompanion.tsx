@@ -1728,38 +1728,40 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer
-          config={{
-            causes: { label: "Jumlah Penyebab", color: "var(--chart-1)" },
-            cumulative: { label: "Kumulatif %", color: "var(--chart-2)" },
-          }}
-          className="h-[320px] w-full"
-        >
-          <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} />
-            <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11 }} />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              domain={[0, 100]}
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 11 }}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]}>
-              <LabelList dataKey="causes" position="top" offset={10} fill="var(--foreground)" fontSize={11} />
-            </Bar>
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="cumulative"
-              stroke="var(--color-cumulative)"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-            />
-          </ComposedChart>
-        </ChartContainer>
+        <div className="overflow-x-auto">
+          <ChartContainer
+            config={{
+              causes: { label: "Jumlah Penyebab", color: "var(--chart-1)" },
+              cumulative: { label: "Kumulatif %", color: "var(--chart-2)" },
+            }}
+            className="h-[320px] min-w-[500px] w-full"
+          >
+            <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} />
+              <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11 }} />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                domain={[0, 100]}
+                tickFormatter={(v) => `${v}%`}
+                tick={{ fontSize: 11 }}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]}>
+                <LabelList dataKey="causes" position="top" offset={10} fill="var(--foreground)" fontSize={11} />
+              </Bar>
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="cumulative"
+                stroke="var(--color-cumulative)"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
       </CardContent>
     </Card>
   );
