@@ -1316,46 +1316,57 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config} className="h-[320px] w-full">
-          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
+        <div className="overflow-x-auto">
+          <ChartContainer config={config} className="h-[320px] min-w-[600px] w-full">
+          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 48 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="subgroup" tickLine={false} axisLine={false} fontSize={11} />
-            <YAxis
-              domain={[Math.floor(data.lcl - 2), Math.ceil(data.ucl + 2)]}
+            <XAxis
+              dataKey="subgroup"
               tickLine={false}
               axisLine={false}
-              fontSize={11}
+              fontSize={10}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={50}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ReferenceLine
-              y={data.ucl}
-              stroke="var(--chart-5)"
-              strokeDasharray="4 4"
-              label={{ value: `UCL ${data.ucl}`, position: "insideTopRight", fill: "var(--chart-5)", fontSize: 11 }}
-            />
-            <ReferenceLine
-              y={data.mean}
-              stroke="var(--chart-2)"
-              strokeDasharray="6 3"
-              label={{ value: `X̿ ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
-            />
-            <ReferenceLine
-              y={data.lcl}
-              stroke="var(--chart-5)"
-              strokeDasharray="4 4"
-              label={{ value: `LCL ${data.lcl}`, position: "insideBottomRight", fill: "var(--chart-5)", fontSize: 11 }}
-            />
-            <Line
-              type="linear"
-              dataKey="xbar"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "var(--chart-1)" }}
-              activeDot={{ r: 5 }}
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-        </ChartContainer>
+              <YAxis
+                domain={[Math.floor(data.lcl - 2), Math.ceil(data.ucl + 2)]}
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ReferenceLine
+                y={data.ucl}
+                stroke="var(--chart-5)"
+                strokeDasharray="4 4"
+                label={{ value: `UCL ${data.ucl}`, position: "insideTopRight", fill: "var(--chart-5)", fontSize: 11 }}
+              />
+              <ReferenceLine
+                y={data.mean}
+                stroke="var(--chart-2)"
+                strokeDasharray="6 3"
+                label={{ value: `X̿ ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+              />
+              <ReferenceLine
+                y={data.lcl}
+                stroke="var(--chart-5)"
+                strokeDasharray="4 4"
+                label={{ value: `LCL ${data.lcl}`, position: "insideBottomRight", fill: "var(--chart-5)", fontSize: 11 }}
+              />
+              <Line
+                type="linear"
+                dataKey="xbar"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "var(--chart-1)" }}
+                activeDot={{ r: 5 }}
+                isAnimationActive={false}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
         <p className="mt-3 text-xs text-slate-500">
           Data disimulasikan untuk ilustrasi pola X̄-R Chart. Ganti dengan pengukuran subgrup aktual saat fase Measure berjalan.
         </p>
@@ -1504,64 +1515,66 @@ function PChartCard({ roadmap }: { roadmap: Roadmap | null }) {
         <CardDescription>{chartDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config} className="h-[320px] w-full">
-          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 28 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="sample"
-              tickLine={false}
-              axisLine={false}
-              fontSize={10}
-              interval={0}
-              angle={-45}
-              textAnchor="end"
-              height={50}
-              tickFormatter={(v: string) => v.replace("Sample ", "")}
-              label={{ value: "Nomor Sampel", position: "insideBottom", offset: -18, fontSize: 11 }}
-            />
-            <YAxis
-              domain={[0, Math.ceil(data.maxUcl + 2)]}
-              tickLine={false}
-              axisLine={false}
-              fontSize={11}
-              tickFormatter={(v: number) => `${v}${unit}`}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ReferenceLine
-              y={data.center}
-              stroke="var(--chart-2)"
-              strokeDasharray="6 3"
-              label={{ value: `${centerSymbol} ${data.center}${unit}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
-            />
-            <Line
-              type="stepAfter"
-              dataKey="ucl"
-              stroke="var(--chart-5)"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="stepAfter"
-              dataKey="lcl"
-              stroke="var(--chart-5)"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-              isAnimationActive={false}
-            />
-            <Line
-              type="linear"
-              dataKey="p"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "var(--chart-1)" }}
-              activeDot={{ r: 5 }}
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-        </ChartContainer>
+        <div className="overflow-x-auto">
+          <ChartContainer config={config} className="h-[320px] min-w-[600px] w-full">
+            <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 28 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="sample"
+                tickLine={false}
+                axisLine={false}
+                fontSize={10}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+                tickFormatter={(v: string) => v.replace("Sample ", "")}
+                label={{ value: "Nomor Sampel", position: "insideBottom", offset: -18, fontSize: 11 }}
+              />
+              <YAxis
+                domain={[0, Math.ceil(data.maxUcl + 2)]}
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+                tickFormatter={(v: number) => `${v}${unit}`}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ReferenceLine
+                y={data.center}
+                stroke="var(--chart-2)"
+                strokeDasharray="6 3"
+                label={{ value: `${centerSymbol} ${data.center}${unit}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+              />
+              <Line
+                type="stepAfter"
+                dataKey="ucl"
+                stroke="var(--chart-5)"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="stepAfter"
+                dataKey="lcl"
+                stroke="var(--chart-5)"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="linear"
+                dataKey="p"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "var(--chart-1)" }}
+                activeDot={{ r: 5 }}
+                isAnimationActive={false}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
         <p className="mt-3 text-xs text-slate-500">{footNote}</p>
       </CardContent>
     </Card>
@@ -1724,38 +1737,47 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer
-          config={{
-            causes: { label: "Jumlah Penyebab", color: "var(--chart-1)" },
-            cumulative: { label: "Kumulatif %", color: "var(--chart-2)" },
-          }}
-          className="h-[320px] w-full"
-        >
-          <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} />
-            <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11 }} />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              domain={[0, 100]}
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 11 }}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]}>
-              <LabelList dataKey="causes" position="top" offset={10} fill="var(--foreground)" fontSize={11} />
-            </Bar>
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="cumulative"
-              stroke="var(--color-cumulative)"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-            />
-          </ComposedChart>
-        </ChartContainer>
+        <div className="overflow-x-auto">
+          <ChartContainer
+            config={{
+              causes: { label: "Jumlah Penyebab", color: "var(--chart-1)" },
+              cumulative: { label: "Kumulatif %", color: "var(--chart-2)" },
+            }}
+            className="h-[320px] min-w-[500px] w-full"
+          >
+            <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 48 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="category"
+                tick={{ fontSize: 10 }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+              />
+              <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11 }} />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                domain={[0, 100]}
+                tickFormatter={(v) => `${v}%`}
+                tick={{ fontSize: 11 }}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar yAxisId="left" dataKey="causes" fill="var(--color-causes)" radius={[6, 6, 0, 0]}>
+                <LabelList dataKey="causes" position="top" offset={10} fill="var(--foreground)" fontSize={11} />
+              </Bar>
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="cumulative"
+                stroke="var(--color-cumulative)"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
       </CardContent>
     </Card>
   );
