@@ -1316,46 +1316,48 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config} className="h-[320px] w-full">
-          <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="subgroup" tickLine={false} axisLine={false} fontSize={11} />
-            <YAxis
-              domain={[Math.floor(data.lcl - 2), Math.ceil(data.ucl + 2)]}
-              tickLine={false}
-              axisLine={false}
-              fontSize={11}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ReferenceLine
-              y={data.ucl}
-              stroke="var(--chart-5)"
-              strokeDasharray="4 4"
-              label={{ value: `UCL ${data.ucl}`, position: "insideTopRight", fill: "var(--chart-5)", fontSize: 11 }}
-            />
-            <ReferenceLine
-              y={data.mean}
-              stroke="var(--chart-2)"
-              strokeDasharray="6 3"
-              label={{ value: `X̿ ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
-            />
-            <ReferenceLine
-              y={data.lcl}
-              stroke="var(--chart-5)"
-              strokeDasharray="4 4"
-              label={{ value: `LCL ${data.lcl}`, position: "insideBottomRight", fill: "var(--chart-5)", fontSize: 11 }}
-            />
-            <Line
-              type="linear"
-              dataKey="xbar"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "var(--chart-1)" }}
-              activeDot={{ r: 5 }}
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-        </ChartContainer>
+        <div className="overflow-x-auto">
+          <ChartContainer config={config} className="h-[320px] min-w-[600px] w-full">
+            <ComposedChart data={data.points} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="subgroup" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis
+                domain={[Math.floor(data.lcl - 2), Math.ceil(data.ucl + 2)]}
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ReferenceLine
+                y={data.ucl}
+                stroke="var(--chart-5)"
+                strokeDasharray="4 4"
+                label={{ value: `UCL ${data.ucl}`, position: "insideTopRight", fill: "var(--chart-5)", fontSize: 11 }}
+              />
+              <ReferenceLine
+                y={data.mean}
+                stroke="var(--chart-2)"
+                strokeDasharray="6 3"
+                label={{ value: `X̿ ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+              />
+              <ReferenceLine
+                y={data.lcl}
+                stroke="var(--chart-5)"
+                strokeDasharray="4 4"
+                label={{ value: `LCL ${data.lcl}`, position: "insideBottomRight", fill: "var(--chart-5)", fontSize: 11 }}
+              />
+              <Line
+                type="linear"
+                dataKey="xbar"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "var(--chart-1)" }}
+                activeDot={{ r: 5 }}
+                isAnimationActive={false}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </div>
         <p className="mt-3 text-xs text-slate-500">
           Data disimulasikan untuk ilustrasi pola X̄-R Chart. Ganti dengan pengukuran subgrup aktual saat fase Measure berjalan.
         </p>
