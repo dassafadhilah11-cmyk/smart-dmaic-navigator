@@ -1745,9 +1745,16 @@ function ParetoFishboneCard({ roadmap }: { roadmap: Roadmap }) {
             }}
             className="h-[320px] min-w-[500px] w-full"
           >
-            <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 8 }}>
+            <ComposedChart data={data} margin={{ top: 10, right: 24, left: 0, bottom: 48 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="category" tick={{ fontSize: 11 }} interval={0} />
+              <XAxis
+                dataKey="category"
+                tick={{ fontSize: 10 }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={50}
+              />
               <YAxis yAxisId="left" allowDecimals={false} tick={{ fontSize: 11 }} />
               <YAxis
                 yAxisId="right"
