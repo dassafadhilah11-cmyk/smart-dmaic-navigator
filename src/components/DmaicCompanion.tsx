@@ -8,6 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Printer,
   Copy,
   Check,
@@ -32,6 +39,8 @@ import {
   ArrowRight,
   RotateCcw,
   FileText,
+  History,
+  Trash2,
 } from "lucide-react";
 import {
   Document,
@@ -658,10 +667,79 @@ async function exportRoadmapToDocx(roadmap: Roadmap, goalStatement: string) {
   saveAs(blob, `DMAIC-Roadmap-${stamp}.docx`);
 }
 
+// ---------- Project history (additive layer, separate storage key) ----------
+const HISTORY_KEY = "dmaic_project_history";
+const HISTORY_LIMIT = 20;
+
+type HistoryEntry = {
+  id: string;
+  label: string;
+  savedAt: number;
+  input: string;
+  roadmap: Roadmap;
+};
+
+function readHistory(): HistoryEntry[] {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(HISTORY_KEY) : null;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return (parsed as HistoryEntry[]).sort((a, b) => b.savedAt - a.savedAt);
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(entries: HistoryEntry[]): HistoryEntry[] {
+  const sorted = [...entries].sort((a, b) => b.savedAt - a.savedAt).slice(0, HISTORY_LIMIT);
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(sorted));
+  } catch {
+    /* quota or unavailable */
+  }
+  return sorted;
+}
+
+function makeLabel(text: string): string {
+  const words = text.trim().split(/\s+/).slice(0, 6).join(" ");
+  return words.length > 60 ? `${words.slice(0, 57)}…` : words || "Project tanpa judul";
+}
+
+function addHistoryEntry(input: string, roadmap: Roadmap): HistoryEntry[] {
+  const entry: HistoryEntry = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    label: makeLabel(input),
+    savedAt: Date.now(),
+    input,
+    roadmap,
+  };
+  return writeHistory([entry, ...readHistory()]);
+}
+
+function removeHistoryEntry(id: string): HistoryEntry[] {
+  return writeHistory(readHistory().filter((e) => e.id !== id));
+}
+
+function formatSavedAt(ts: number): string {
+  try {
+    return new Date(ts).toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
 export function DmaicCompanion() {
   const [input, setInput] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const reportRef = useRef<HTMLDivElement>(null);
   const callGenerate = useServerFn(generateRoadmap);
 
@@ -681,6 +759,11 @@ export function DmaicCompanion() {
       /* ignore corrupt storage */
     }
     hydratedRef.current = true;
+  }, []);
+
+  // Restore project history (separate, additive layer).
+  useEffect(() => {
+    setHistory(readHistory());
   }, []);
 
   // Persist whenever input or roadmap changes (after hydration).
@@ -705,13 +788,15 @@ export function DmaicCompanion() {
       // Merge AI output with static method/tool catalogs the UI still needs.
       const fallback = buildRoadmap(input);
       const ai = result.roadmap as Partial<Roadmap>;
-      setRoadmap({
+      const merged = {
         ...fallback,
         ...ai,
         qualitative: fallback.qualitative,
         quantitative: fallback.quantitative,
         controls: fallback.controls,
-      } as Roadmap);
+      } as Roadmap;
+      setRoadmap(merged);
+      setHistory(addHistoryEntry(input.trim(), merged));
       setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Gagal menghasilkan roadmap.");
@@ -730,6 +815,18 @@ export function DmaicCompanion() {
       /* ignore */
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLoadHistory = (entry: HistoryEntry) => {
+    setInput(entry.input);
+    setRoadmap(entry.roadmap);
+    setLoading(false);
+    setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    toast.success("Project dimuat dari riwayat.");
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    setHistory(removeHistoryEntry(id));
   };
 
   const goalStatement = useMemo(() => {
@@ -847,6 +944,61 @@ export function DmaicCompanion() {
                 <RotateCcw className="mr-2 size-4" />
                 Reset Project
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    <History className="mr-2 size-4" />
+                    Riwayat Project
+                    {history.length > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {history.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-80 max-h-96 overflow-y-auto">
+                  <DropdownMenuLabel>Project tersimpan</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {history.length === 0 ? (
+                    <p className="px-2 py-3 text-xs text-muted-foreground">
+                      Belum ada project tersimpan. Generate roadmap untuk menyimpan otomatis.
+                    </p>
+                  ) : (
+                    history.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="flex items-start gap-2 rounded-md px-2 py-2 hover:bg-accent/60"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleLoadHistory(entry)}
+                          className="flex-1 text-left"
+                        >
+                          <span className="block text-sm font-medium text-foreground line-clamp-2">
+                            {entry.label}
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            {formatSavedAt(entry.savedAt)}
+                          </span>
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Hapus ${entry.label}`}
+                          className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteHistory(entry.id);
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
               {roadmap && (
                 <Button
                   onClick={() => window.print()}
