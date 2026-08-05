@@ -944,6 +944,61 @@ export function DmaicCompanion() {
                 <RotateCcw className="mr-2 size-4" />
                 Reset Project
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    <History className="mr-2 size-4" />
+                    Riwayat Project
+                    {history.length > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {history.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-80 max-h-96 overflow-y-auto">
+                  <DropdownMenuLabel>Project tersimpan</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {history.length === 0 ? (
+                    <p className="px-2 py-3 text-xs text-muted-foreground">
+                      Belum ada project tersimpan. Generate roadmap untuk menyimpan otomatis.
+                    </p>
+                  ) : (
+                    history.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="flex items-start gap-2 rounded-md px-2 py-2 hover:bg-accent/60"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleLoadHistory(entry)}
+                          className="flex-1 text-left"
+                        >
+                          <span className="block text-sm font-medium text-foreground line-clamp-2">
+                            {entry.label}
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            {formatSavedAt(entry.savedAt)}
+                          </span>
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Hapus ${entry.label}`}
+                          className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteHistory(entry.id);
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
               {roadmap && (
                 <Button
                   onClick={() => window.print()}
