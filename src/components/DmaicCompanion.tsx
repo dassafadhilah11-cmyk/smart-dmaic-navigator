@@ -1415,7 +1415,8 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
   const data = useMemo(() => {
     if (!roadmap) return null;
     const rec = recommendChart(roadmap);
-    if (rec.chart !== "X̄-R Chart") return null;
+    const isIMR = rec.chart === "I-MR Chart";
+    if (rec.chart !== "X̄-R Chart" && !isIMR) return null;
 
     // Seeded pseudo-random from problem text so simulation is stable across renders.
     const seedSrc = (roadmap.problem ?? "xbar") + (roadmap.metricNouns?.join("|") ?? "");
@@ -1428,7 +1429,7 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
 
     const target = 100;
     const sigma = 5;
-    const n = 5; // subgroup size
+    const n = isIMR ? 1 : 5; // subgroup size (I-MR uses individual observations)
     const k = 20; // subgroups
     const points: { subgroup: string; xbar: number }[] = [];
     for (let i = 1; i <= k; i++) {
@@ -1443,17 +1444,32 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
       points.push({ subgroup: `#${i}`, xbar: +(sum / n).toFixed(2) });
     }
     const mean = points.reduce((s, p) => s + p.xbar, 0) / points.length;
+    if (isIMR) {
+      // I-Chart: limits from average moving range, UCL/LCL = X̄ ± 2.66 · MR̄
+      let mrSum = 0;
+      for (let i = 1; i < points.length; i++) mrSum += Math.abs(points[i].xbar - points[i - 1].xbar);
+      const mrBar = mrSum / Math.max(points.length - 1, 1);
+      return {
+        isIMR: true,
+        mrBar: +mrBar.toFixed(2),
+        points,
+        mean: +mean.toFixed(2),
+        ucl: +(mean + 2.66 * mrBar).toFixed(2),
+        lcl: +(mean - 2.66 * mrBar).toFixed(2),
+      };
+    }
     // 3-sigma limits on subgroup means: σ_xbar = σ/√n
     const sigmaXbar = sigma / Math.sqrt(n);
     const ucl = +(mean + 3 * sigmaXbar).toFixed(2);
     const lcl = +(mean - 3 * sigmaXbar).toFixed(2);
-    return { points, mean: +mean.toFixed(2), ucl, lcl };
+    return { isIMR: false, mrBar: null as number | null, points, mean: +mean.toFixed(2), ucl, lcl };
   }, [roadmap]);
 
   if (!data) return null;
 
+  const isIMR = data.isIMR;
   const config = {
-    xbar: { label: "Rata-rata Subgrup (X̄)", color: "var(--chart-1)" },
+    xbar: { label: isIMR ? "Nilai Individu (X)" : "Rata-rata Subgrup (X̄)", color: "var(--chart-1)" },
   };
 
   return (
@@ -1461,10 +1477,12 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <ShieldCheck className="size-5 text-primary" />
-          X̄-R Chart Simulation
+          {isIMR ? "I-MR Chart Simulation" : "X̄-R Chart Simulation"}
         </CardTitle>
         <CardDescription>
-          Simulasi 20 subgrup (n=5) di sekitar rata-rata proses, dengan batas kendali 3σ (UCL/LCL).
+          {isIMR
+            ? `Simulasi 20 observasi individu (n=1) dengan batas kendali dari moving range (MR̄ ${data.mrBar}), UCL/LCL = X̄ ± 2,66 · MR̄.`
+            : "Simulasi 20 subgrup (n=5) di sekitar rata-rata proses, dengan batas kendali 3σ (UCL/LCL)."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -1499,7 +1517,7 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
                 y={data.mean}
                 stroke="var(--chart-2)"
                 strokeDasharray="6 3"
-                label={{ value: `X̿ ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
+                label={{ value: `${isIMR ? "X̄" : "X̿"} ${data.mean}`, position: "insideTopRight", fill: "var(--chart-2)", fontSize: 11 }}
               />
               <ReferenceLine
                 y={data.lcl}
@@ -1520,7 +1538,9 @@ function XbarRChartCard({ roadmap }: { roadmap: Roadmap | null }) {
           </ChartContainer>
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          Data disimulasikan untuk ilustrasi pola X̄-R Chart. Ganti dengan pengukuran subgrup aktual saat fase Measure berjalan.
+          {isIMR
+            ? "Data disimulasikan untuk ilustrasi pola I-MR Chart. Ganti dengan pengukuran individu aktual saat fase Measure berjalan."
+            : "Data disimulasikan untuk ilustrasi pola X̄-R Chart. Ganti dengan pengukuran subgrup aktual saat fase Measure berjalan."}
         </p>
       </CardContent>
     </Card>
