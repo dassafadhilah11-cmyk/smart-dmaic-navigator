@@ -924,7 +924,7 @@ export function DmaicCompanion() {
               placeholder="Tulis masalah Anda di sini..."
               className="min-h-32 resize-none text-base"
             />
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
               <Button
                 onClick={handleGenerate}
                 disabled={!input.trim() || loading}
