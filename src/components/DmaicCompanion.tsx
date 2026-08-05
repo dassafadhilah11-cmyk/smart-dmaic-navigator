@@ -667,6 +667,74 @@ async function exportRoadmapToDocx(roadmap: Roadmap, goalStatement: string) {
   saveAs(blob, `DMAIC-Roadmap-${stamp}.docx`);
 }
 
+// ---------- Project history (additive layer, separate storage key) ----------
+const HISTORY_KEY = "dmaic_project_history";
+const HISTORY_LIMIT = 20;
+
+type HistoryEntry = {
+  id: string;
+  label: string;
+  savedAt: number;
+  input: string;
+  roadmap: Roadmap;
+};
+
+function readHistory(): HistoryEntry[] {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(HISTORY_KEY) : null;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return (parsed as HistoryEntry[]).sort((a, b) => b.savedAt - a.savedAt);
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(entries: HistoryEntry[]): HistoryEntry[] {
+  const sorted = [...entries].sort((a, b) => b.savedAt - a.savedAt).slice(0, HISTORY_LIMIT);
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(sorted));
+  } catch {
+    /* quota or unavailable */
+  }
+  return sorted;
+}
+
+function makeLabel(text: string): string {
+  const words = text.trim().split(/\s+/).slice(0, 6).join(" ");
+  return words.length > 60 ? `${words.slice(0, 57)}…` : words || "Project tanpa judul";
+}
+
+function addHistoryEntry(input: string, roadmap: Roadmap): HistoryEntry[] {
+  const entry: HistoryEntry = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    label: makeLabel(input),
+    savedAt: Date.now(),
+    input,
+    roadmap,
+  };
+  return writeHistory([entry, ...readHistory()]);
+}
+
+function removeHistoryEntry(id: string): HistoryEntry[] {
+  return writeHistory(readHistory().filter((e) => e.id !== id));
+}
+
+function formatSavedAt(ts: number): string {
+  try {
+    return new Date(ts).toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
 export function DmaicCompanion() {
   const [input, setInput] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
