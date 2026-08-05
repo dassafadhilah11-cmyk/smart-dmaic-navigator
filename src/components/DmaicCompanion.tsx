@@ -671,6 +671,7 @@ export function DmaicCompanion() {
   const [input, setInput] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const reportRef = useRef<HTMLDivElement>(null);
   const callGenerate = useServerFn(generateRoadmap);
 
@@ -690,6 +691,11 @@ export function DmaicCompanion() {
       /* ignore corrupt storage */
     }
     hydratedRef.current = true;
+  }, []);
+
+  // Restore project history (separate, additive layer).
+  useEffect(() => {
+    setHistory(readHistory());
   }, []);
 
   // Persist whenever input or roadmap changes (after hydration).
@@ -721,6 +727,14 @@ export function DmaicCompanion() {
         quantitative: fallback.quantitative,
         controls: fallback.controls,
       } as Roadmap);
+      const merged = {
+        ...fallback,
+        ...ai,
+        qualitative: fallback.qualitative,
+        quantitative: fallback.quantitative,
+        controls: fallback.controls,
+      } as Roadmap;
+      setHistory(addHistoryEntry(input.trim(), merged));
       setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Gagal menghasilkan roadmap.");
@@ -739,6 +753,18 @@ export function DmaicCompanion() {
       /* ignore */
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLoadHistory = (entry: HistoryEntry) => {
+    setInput(entry.input);
+    setRoadmap(entry.roadmap);
+    setLoading(false);
+    setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    toast.success("Project dimuat dari riwayat.");
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    setHistory(removeHistoryEntry(id));
   };
 
   const goalStatement = useMemo(() => {
