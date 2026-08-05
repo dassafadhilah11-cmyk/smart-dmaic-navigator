@@ -788,13 +788,6 @@ export function DmaicCompanion() {
       // Merge AI output with static method/tool catalogs the UI still needs.
       const fallback = buildRoadmap(input);
       const ai = result.roadmap as Partial<Roadmap>;
-      setRoadmap({
-        ...fallback,
-        ...ai,
-        qualitative: fallback.qualitative,
-        quantitative: fallback.quantitative,
-        controls: fallback.controls,
-      } as Roadmap);
       const merged = {
         ...fallback,
         ...ai,
@@ -802,6 +795,7 @@ export function DmaicCompanion() {
         quantitative: fallback.quantitative,
         controls: fallback.controls,
       } as Roadmap;
+      setRoadmap(merged);
       setHistory(addHistoryEntry(input.trim(), merged));
       setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
