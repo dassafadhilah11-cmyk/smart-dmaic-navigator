@@ -32,6 +32,8 @@ import {
   ArrowRight,
   RotateCcw,
   FileText,
+  History,
+  Trash2,
 } from "lucide-react";
 import {
   Document,
