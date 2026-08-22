@@ -1,3 +1,6 @@
+// src/lib/i18n.ts
+import { useState, useEffect } from 'react';
+
 export type Language = 'id' | 'en';
 
 export const translations = {
@@ -29,6 +32,24 @@ export const translations = {
   },
 };
 
-export function getTranslation(lang: Language, key: keyof typeof translations['id']) {
-  return translations[lang][key] || translations['en'][key];
+// Custom hook langsung di file i18n agar tidak perlu buat folder context
+export function useLanguageState() {
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('dmaic_lang');
+    return (saved === 'id' || saved === 'en') ? saved : 'id';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('dmaic_lang', lang);
+  }, [lang]);
+
+  const toggleLang = () => {
+    setLang(prev => (prev === 'id' ? 'en' : 'id'));
+  };
+
+  const t = (key: keyof typeof translations['id']) => {
+    return translations[lang][key] || translations['en'][key];
+  };
+
+  return { lang, toggleLang, t };
 }
